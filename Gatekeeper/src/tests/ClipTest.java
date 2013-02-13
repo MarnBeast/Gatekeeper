@@ -117,6 +117,10 @@ public class ClipTest
 	public void setPlacePercentTest()
 	{
 		Clip clip = new Clip(fullClipPath, 0.0, 160.0);
+		assertEquals(0.0, clip.getPlacePercent(), 0.001);
+		assertEquals(0.0, clip.getStartTime(), 0.001);
+		assertEquals(160.0, clip.getTotalTime(), 0.001);
+		
 		if(testStartTime < 0 || testTotalTime <= 0 || testStartTime >= testTotalTime)
 		{
 			boolean fail = true;
@@ -137,6 +141,9 @@ public class ClipTest
 		{
 			clip.setPlacePercent(testStartTime, testTotalTime);
 			assertEquals(testPlacePercent, clip.getPlacePercent(), 0.001);
+			assertEquals(testStartTime, clip.getStartTime(), 0.001);
+			assertEquals(testTotalTime, clip.getTotalTime(), 0.001);
+			
 		}
 	}
 	
