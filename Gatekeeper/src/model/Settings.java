@@ -38,14 +38,14 @@ public class Settings {
 		TapeIncludes.putAll(tapeIncludes);
 	}
 	
-	public int removeTapeIncludes(int typeID)
+	public int removeTapeIncludes(Tape tape)
 	{
-		return TapeIncludes.remove(typeID);
+		return TapeIncludes.remove(tape);
 	}
 	
-	public int getTapeIncludes(int typeID)
+	public int getTapeIncludes(Tape tape)
 	{
-		return TapeIncludes.get(typeID);
+		return TapeIncludes.get(tape);
 	}
 	
 	public void clearTapeIncludes()
