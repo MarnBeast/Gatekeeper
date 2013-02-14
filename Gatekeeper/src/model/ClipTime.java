@@ -7,7 +7,7 @@ public class ClipTime {
 	
 	/**
 	 * Maps a clip to a time in seconds.
-	 * Used for Landmarks and the Timeline.
+	 * Used for the Timeline.
 	 * @param clip Clip to be assigned a time.
 	 * @param time The time that the clip should occur in seconds.
 	 */
