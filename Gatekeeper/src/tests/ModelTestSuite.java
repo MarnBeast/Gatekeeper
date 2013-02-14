@@ -8,7 +8,8 @@ import org.junit.runners.Suite.SuiteClasses;
 @RunWith(Suite.class)
 @SuiteClasses({
 	ClipTest.class,
-	ClipTimeTest.class
+	ClipTimeTest.class,
+	LandmarkTest.class
 })
 public class ModelTestSuite {
 
