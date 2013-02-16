@@ -2,6 +2,7 @@ package model;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 
 
 public class Settings {
@@ -66,11 +67,23 @@ public class Settings {
 	
 	public double setBias(int typeID, double percentageBias)
 	{
+		if(percentageBias < 0)
+		{
+			throw new IllegalArgumentException("A type cannot have a negative percentage bias.");
+		}
 		return Biases.put(typeID, percentageBias);
 	}
 	
 	public void setBiases(HashMap<Integer, Double> biases)
 	{
+		Iterator<Double> percentageBiases = biases.values().iterator();
+		while(percentageBiases.hasNext())
+		{
+			if(percentageBiases.next() < 0)
+			{
+				throw new IllegalArgumentException("A type cannot have a negative percentage bias. An element in this hashmap has a negative value.");
+			}
+		}
 		Biases.putAll(biases);
 	}
 	
