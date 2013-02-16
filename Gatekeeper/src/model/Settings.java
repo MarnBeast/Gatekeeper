@@ -29,29 +29,29 @@ public class Settings {
 		return (HashMap<Tape, Integer>) TapeIncludes.clone();
 	}
 	
-	public int setTapeIncludes(Tape tape, int includesBitmap)
+	public Integer addTapeIncludes(Tape tape, int includesBitmap)
 	{
 		return TapeIncludes.put(tape, includesBitmap);
 	}
 	
-	public void setTapeIncludes(HashMap<Tape, Integer> tapeIncludes)
+	public void addTapeIncludes(HashMap<Tape, Integer> tapeIncludes)
 	{
 		TapeIncludes.putAll(tapeIncludes);
 	}
 	
-	public int removeTapeIncludes(Tape tape)
+	public Integer removeTapeIncludes(Tape tape)
 	{
 		return TapeIncludes.remove(tape);
 	}
 	
-	public int getTapeIncludes(Tape tape)
+	public Integer getTapeIncludes(Tape tape)
 	{
 		return TapeIncludes.get(tape);
 	}
 	
 	public void clearTapeIncludes()
 	{
-		clearTapeIncludes();
+		TapeIncludes.clear();
 	}
 
 	
@@ -65,7 +65,7 @@ public class Settings {
 		return (HashMap<Integer, Double>) Biases.clone();
 	}
 	
-	public double setBias(int typeID, double percentageBias)
+	public Double addBias(int typeID, double percentageBias)
 	{
 		if(percentageBias < 0)
 		{
@@ -74,7 +74,7 @@ public class Settings {
 		return Biases.put(typeID, percentageBias);
 	}
 	
-	public void setBiases(HashMap<Integer, Double> biases)
+	public void addBiases(HashMap<Integer, Double> biases)
 	{
 		Iterator<Double> percentageBiases = biases.values().iterator();
 		while(percentageBiases.hasNext())
@@ -87,12 +87,12 @@ public class Settings {
 		Biases.putAll(biases);
 	}
 	
-	public double removeBias(int typeID)
+	public Double removeBias(int typeID)
 	{
 		return Biases.remove(typeID);
 	}
 	
-	public double getBias(int typeID)
+	public Double getBias(int typeID)
 	{
 		return Biases.get(typeID);
 	}
