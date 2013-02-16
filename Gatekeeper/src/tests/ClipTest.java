@@ -250,14 +250,20 @@ public class ClipTest
 			assertEquals(i+1, clip.getChainedClips().size());
 		}
 
-		ArrayList<Clip> retTypeList;
-		retTypeList = clip.clearChainedClips();
-		assertNotNull(retTypeList);
+		ArrayList<Clip> retClipsList;
+		// verify that we are getting a clone.
+		retClipsList = clip.getChainedClips();
+		retClipsList.clear();
+		assertTrue(clip.getChainedClips().size() > retClipsList.size());
+		
+		// clearChainedClips
+		retClipsList = clip.clearChainedClips();
+		assertNotNull(retClipsList);
 		assertEquals(0, clip.getChainedClips().size());
-		assertEquals(testids.length, retTypeList.size());
+		assertEquals(testids.length, retClipsList.size());
 		for(int i = 0; i < testids.length; i++)
 		{
-			assertTrue(retTypeList.contains(testids[i]));
+			assertTrue(retClipsList.contains(testids[i]));
 		}
 		
 		boolean fail = true;
@@ -309,6 +315,12 @@ public class ClipTest
 		}
 
 		ArrayList<Integer> retTypeList;
+		// verify that we are getting a clone
+		retTypeList = clip.getTypeIDs();
+		retTypeList.clear();
+		assertTrue(clip.getTypeIDs().size() > retTypeList.size());
+		
+		// clearTypeIDs
 		retTypeList = clip.clearTypeIDs();
 		assertNotNull(retTypeList);
 		assertEquals(0, clip.getTypeIDs().size());
