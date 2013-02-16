@@ -118,8 +118,9 @@ public class Clip implements Serializable
 	/**
 	 * @return ArrayList of Clips that are chained directly to this clip.
 	 */
+	@SuppressWarnings("unchecked")
 	public ArrayList<Clip> getChainedClips() {
-		return Chains;
+		return (ArrayList<Clip>) Chains.clone();
 	}
 	
 	/**
@@ -177,8 +178,9 @@ public class Clip implements Serializable
 	 * with this clip map to those types and describe the contents of this clip.
 	 * @return the ArrayList of clip type IDs
 	 */
+	@SuppressWarnings("unchecked")
 	public ArrayList<Integer> getTypeIDs() {
-		return TypeIDs;
+		return (ArrayList<Integer>) TypeIDs.clone();
 	}
 	
 	/**
