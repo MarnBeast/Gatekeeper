@@ -49,9 +49,13 @@ public class Settings {
 		return TapeIncludes.get(tape);
 	}
 	
-	public void clearTapeIncludes()
+	@SuppressWarnings("unchecked")
+	public HashMap<Tape, Integer> clearTapeIncludes()
 	{
+		HashMap<Tape, Integer> retMap;
+		retMap = (HashMap<Tape, Integer>) TapeIncludes.clone();
 		TapeIncludes.clear();
+		return retMap;
 	}
 
 	
@@ -97,9 +101,13 @@ public class Settings {
 		return Biases.get(typeID);
 	}
 	
-	public void clearBiases()
+	@SuppressWarnings("unchecked")
+	public HashMap<Integer, Double> clearBiases()
 	{
+		HashMap<Integer, Double> retMap;
+		retMap = (HashMap<Integer, Double>)Biases.clone();
 		Biases.clear();
+		return retMap;
 	}
 
 	
@@ -113,22 +121,57 @@ public class Settings {
 		return (ArrayList<Landmark>) Landmarks.clone();
 	}
 	
-	public void addLandmark(Landmark landmark)
+	public boolean addLandmark(Landmark landmark)
 	{
-		Landmarks.add(landmark);
+		if(landmark == null)
+		{
+			throw new NullPointerException("Landmark must not be null");
+		}
+		
+		double time = landmark.getTime();
+		Iterator<Landmark> landIter = Landmarks.iterator();
+		while(landIter.hasNext())
+		{
+			Landmark nextLandmark = landIter.next();
+			if(nextLandmark.getTime() == time)
+			{
+				return false;
+			}
+		}
+		
+		return Landmarks.add(landmark);
 	}
 	
-	public void addLandmarks(ArrayList<Landmark> landmarks) {
-		Landmarks.addAll(landmarks);
+	public boolean addLandmark(int typeID, double time)
+	{
+		Iterator<Landmark> landIter = Landmarks.iterator();
+		while(landIter.hasNext())
+		{
+			Landmark nextLandmark = landIter.next();
+			if(nextLandmark.getTime() == time)
+			{
+				return false;
+			}
+		}
+		
+		Landmark landmark = new Landmark(typeID, time);
+		return Landmarks.add(landmark);
 	}
 	
-	public void removeLandmark(Landmark landmark)
-	{
-		Landmarks.remove(landmark);
+	public boolean addLandmarks(ArrayList<Landmark> landmarks) {
+		return Landmarks.addAll(landmarks);
 	}
 	
-	public void clearLandmarks()
+	public boolean removeLandmark(Landmark landmark)
 	{
+		return Landmarks.remove(landmark);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public ArrayList<Landmark> clearLandmarks()
+	{
+		ArrayList<Landmark> retList;
+		retList = (ArrayList<Landmark>)Landmarks.clone();
 		Landmarks.clear();
-	}
+		return retList;	}
 }
