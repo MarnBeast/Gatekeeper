@@ -2,8 +2,10 @@ package tests;
 
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
+import model.Landmark;
 import model.Settings;
 import model.Tape;
 
@@ -43,9 +45,9 @@ public class SettingsTest {
 			// getTapeIncludes
 			assertEquals(i+1, settings.getTapeIncludes().size());
 			assertTrue(settings.getTapeIncludes().containsKey(tapes[i]));
-			assertEquals(includeValues[i],settings.getTapeIncludes().get(tapes[i]), 0.001);
+			assertEquals(includeValues[i],(int)settings.getTapeIncludes().get(tapes[i]));
 			// getTapeIncludes
-			assertEquals(includeValues[i],settings.getTapeIncludes(tapes[i]), 0.001);
+			assertEquals(includeValues[i],(int)settings.getTapeIncludes(tapes[i]));
 		}
 		assertNull(settings.getTapeIncludes(tapeNotInTypeIDs));	// getTapeIncludes should return null if key not found
 		
@@ -61,16 +63,16 @@ public class SettingsTest {
 		assertEquals(numIndexes+1,settings.getTapeIncludes().size());
 		for(int i = 0; i<numIndexes; i++)
 		{
-			assertEquals(includeValues[(numIndexes-1)-i], settings.getTapeIncludes(tapes[i]), 0.001);
+			assertEquals(includeValues[(numIndexes-1)-i], (int)settings.getTapeIncludes(tapes[i]));
 		}
-		assertEquals(includeValues[0], settings.getTapeIncludes(tapeNotInTypeIDs), 0.001);
+		assertEquals(includeValues[0], (int)settings.getTapeIncludes(tapeNotInTypeIDs));
 		
 		// getTapeIncludes
 		testHashMap = settings.getTapeIncludes();
 		HashMap<Tape, Integer> testHashMap2 = settings.getTapeIncludes();
 		testHashMap.put(tapes[0], testHashMap.get(tapes[0])+1);
 		// assert that getTapeIncludes is a clone
-		assertEquals(settings.getTapeIncludes(tapes[0]), testHashMap2.get(tapes[0]), 0.001);
+		assertEquals(settings.getTapeIncludes(tapes[0]), testHashMap2.get(tapes[0]));
 		assertFalse(settings.getTapeIncludes(tapes[0]) == testHashMap.get(tapes[0]));
 		testHashMap.clear();
 		testHashMap2.clear();
@@ -82,8 +84,9 @@ public class SettingsTest {
 		assertNull(settings.getTapeIncludes(tapeNotInTypeIDs));
 		
 		// clearTapeIncludes
-		settings.clearTapeIncludes();
+		testHashMap = settings.clearTapeIncludes();
 		assertEquals(0, settings.getTapeIncludes().size());
+		assertEquals(numIndexes, testHashMap.values().size());
 	}
 	
 	
@@ -150,7 +153,71 @@ public class SettingsTest {
 		assertNull(settings.getBias(typeIDNotInTypeIDs));
 		
 		// clearBiases
-		settings.clearBiases();
+		testHashMap = settings.clearBiases();
 		assertEquals(0, settings.getBiases().size());
+		assertEquals(numIndexes, testHashMap.values().size());
+	}
+	
+	@Test
+	public void landmarksTest()
+	{
+		Settings settings = new Settings();
+		assertEquals(0, settings.getLandmarks().size());
+		Landmark landmark1 = new Landmark(0, 152.5);
+		Landmark landmark2 = new Landmark(1, 242.3);
+		Landmark landmark3 = new Landmark(2, 365.2);
+		Landmark landmark4 = new Landmark(1, 15.2);
+		Landmark landmark5 = new Landmark(3, 306.4);
+		Landmark[] landmarks = new Landmark[] {landmark1,landmark2,landmark3,landmark4,landmark5};
+		boolean ret;
+		
+		for(int i = 0; i < landmarks.length; i++)
+		{
+			ret = settings.addLandmark(landmarks[i]);
+			assertTrue(ret);
+			assertEquals(i+1, settings.getLandmarks().size());
+			assertTrue(settings.getLandmarks().contains(landmarks[i]));
+		}
+		for(int i = landmarks.length - 1; i >= 0; i--)
+		{
+			ret = settings.removeLandmark(landmarks[i]);
+			assertTrue(ret);
+			assertEquals(i, settings.getLandmarks().size());
+			assertFalse(settings.getLandmarks().contains(landmarks[i]));
+		}
+		for(int i = 0; i < landmarks.length; i++)
+		{
+			ret = settings.addLandmark(landmarks[i]);
+			assertEquals(i+1, settings.getLandmarks().size());
+		}
+
+		ArrayList<Landmark> retTypeList;
+		retTypeList = settings.clearLandmarks();
+		assertNotNull(retTypeList);
+		assertEquals(0, settings.getLandmarks().size());
+		assertEquals(landmarks.length, retTypeList.size());
+		for(int i = 0; i < landmarks.length; i++)
+		{
+			assertTrue(retTypeList.contains(landmarks[i]));
+		}
+		
+		boolean fail = true;
+		try {
+			settings.addLandmark(null);
+		} catch (NullPointerException e) {
+			fail = false;
+		}
+		if(fail)
+		{
+			fail();
+		}
+		
+		assertTrue(settings.addLandmark(landmark1));
+		assertFalse(settings.addLandmark(landmark1));
+		assertTrue(settings.addLandmark(landmark2.getTypeID(), landmark2.getTime()));
+		assertFalse(settings.addLandmark(landmark1.getTypeID(), landmark2.getTime()));
+		assertTrue(settings.addLandmark(landmark1.getTypeID(), landmark3.getTime()));
+		
+		assertEquals(3, settings.getLandmarks().size());
 	}
 }
