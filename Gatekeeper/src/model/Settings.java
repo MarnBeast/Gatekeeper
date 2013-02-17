@@ -110,21 +110,54 @@ public class Settings {
 	// BIASES
 	
 	/**
+	 * Returns a HashMap of all bias percentages saved in the settings, keyed by typeID.
 	 * 
-	 * @return the biases
+	 * This HashMap is a clone. To manipulate the biases in the settings, use addBias, addBiases,
+	 * removeBias, and clearBiases.
+	 * @return HashMap<Integer, Double> of all bias percentages saved in the settings, keyed by typeID.
 	 */
 	@SuppressWarnings("unchecked")
 	public HashMap<Integer, Double> getBiases() {
 		return (HashMap<Integer, Double>) Biases.clone();
 	}
 	
-	public Double addBias(int typeID, double percentageBias)
+	/**
+	 * Add a bias to the settings.
+	 * 
+	 * This is used to skew the chances that a specific clip type is chosen for the timeline.
+	 * A bias percentage may be any number from 0 to Double.MAX_VALUE.
+	 * 
+	 * A bias of 0 means that no clips of the specified type should be added to the timeline.
+	 * 
+	 * A bias between 1 and 100 means that the chances that a clip of that type are chosen should be lowered.
+	 * Ex. 50.0 means that clips of that type are half as likely to be chosen.
+	 * 
+	 * A bias of 100 means that the chances that a clip of that type is chosen should be unaltered.
+	 * 
+	 * A bias between 100 and Double.MAX_VALUE means that the chances that a clip of that type is chosen should
+	 * be raised.
+	 * Ex. 200.0 means that clips of that type are twice as likely to be added to the timeline.
+	 * 
+	 * @param typeID
+	 * @param percentageBias
+	 * @return The previous percentage bias assigned to that type. If no assignment exists, 100.0 is returned.
+	 * @throws IllegalArgumentException If percentageBias is negative, IllegalArgumentException is thrown.
+	 */
+	public double addBias(int typeID, double percentageBias)
 	{
 		if(percentageBias < 0)
 		{
 			throw new IllegalArgumentException("A type cannot have a negative percentage bias.");
 		}
-		return Biases.put(typeID, percentageBias);
+		
+		Double retValDouble = Biases.put(typeID, percentageBias);
+		if(retValDouble == null)
+		{
+			return 100.0;
+		}
+		else {
+			return retValDouble;
+		}
 	}
 	
 	public void addBiases(HashMap<Integer, Double> biases)
@@ -140,14 +173,28 @@ public class Settings {
 		Biases.putAll(biases);
 	}
 	
-	public Double removeBias(int typeID)
+	public double removeBias(int typeID)
 	{
-		return Biases.remove(typeID);
+		Double retValDouble = Biases.remove(typeID);
+		if(retValDouble == null)
+		{
+			return 100.0;
+		}
+		else {
+			return retValDouble;
+		}
 	}
 	
-	public Double getBias(int typeID)
+	public double getBias(int typeID)
 	{
-		return Biases.get(typeID);
+		Double retValDouble = Biases.get(typeID);
+		if(retValDouble == null)
+		{
+			return 100.0;
+		}
+		else {
+			return retValDouble;
+		}
 	}
 	
 	@SuppressWarnings("unchecked")

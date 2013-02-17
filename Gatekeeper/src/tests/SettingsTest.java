@@ -110,7 +110,8 @@ public class SettingsTest {
 		
 		for (int i = 0; i<numIndexes; i++)
 		{
-			settings.addBias(typeIDs[i], percentageBiases[i]);
+			double ret = settings.addBias(typeIDs[i], percentageBiases[i]);
+			assertEquals(100.0, ret, 0.001);
 			// getBiases
 			assertEquals(i+1, settings.getBiases().size());
 			assertTrue(settings.getBiases().containsKey(typeIDs[i]));
@@ -118,7 +119,7 @@ public class SettingsTest {
 			// getBias
 			assertEquals(percentageBiases[i],settings.getBias(typeIDs[i]), 0.001);
 		}
-		assertNull(settings.getBias(typeIDNotInTypeIDs));	// getBias should return null if key not found
+		assertEquals(100.0, settings.getBias(typeIDNotInTypeIDs), 0.001);	// getBias should return null if key not found
 		
 		boolean exceptionThrown = false;
 		try {
@@ -128,7 +129,7 @@ public class SettingsTest {
 		}
 		assertTrue(exceptionThrown);
 		
-		// setBiases
+		// addBiases
 		HashMap<Integer, Double> testHashMap = new HashMap<>();
 		for (int i = 0; i<numIndexes; i++)
 		{
@@ -158,7 +159,8 @@ public class SettingsTest {
 		// removeBias
 		settings.removeBias(typeIDNotInTypeIDs);
 		assertEquals(numIndexes, settings.getBiases().size());
-		assertNull(settings.getBias(typeIDNotInTypeIDs));
+		assertEquals(100.0,settings.getBias(typeIDNotInTypeIDs),0.001);
+		assertEquals(100.0,settings.removeBias(typeIDNotInTypeIDs),0.001);
 		
 		// clearBiases
 		testHashMap = settings.clearBiases();
