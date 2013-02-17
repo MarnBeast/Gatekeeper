@@ -4,6 +4,11 @@ import java.util.Iterator;
 
 public class IDListComparable<T extends Comparable<T>> extends IDList<T>{
 	
+	public IDListComparable()
+	{
+		super();
+	}
+	
 	public void merge(IDList<T> list)
 	{
 		Iterator<T> listIter = list.toArrayList().iterator();

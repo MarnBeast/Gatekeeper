@@ -8,6 +8,12 @@ public class IDList<T> {
 	private ArrayList<T> valuesArrayList;
 	
 	
+	public IDList()
+	{
+		valuesArrayList = new ArrayList<T>();
+	}
+	
+	
 	@SuppressWarnings("unchecked")
 	public ArrayList<T> toArrayList()
 	{
