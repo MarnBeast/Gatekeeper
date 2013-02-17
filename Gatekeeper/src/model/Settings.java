@@ -35,21 +35,22 @@ public class Settings {
 	// TAPE INCLUDES
 	
 	/**
-	 * Returns a HashMap of all of the include settings bitmaps keyed by Tape.
+	 * Returns a HashMap of all of the tape include settings EnumSets keyed by Tape.
+	 * 
+	 * This value is a clone. To manipulate the tape includes settings, use the addTapeIncludes,
+	 * removeTapeIncludes, and clearTapeIncludes methods.
 	 * @return the tapeIncludes
 	 */
 	@SuppressWarnings("unchecked")
-	public HashMap<Tape, Integer> getTapeIncludes() {
-		return (HashMap<Tape, Integer>) TapeIncludes.clone();
+	public HashMap<Tape, EnumSet<TapeInclude>> getTapeIncludes() {
+		return (HashMap<Tape, EnumSet<TapeInclude>>) TapeIncludes.clone();
 	}
 	
 	/**
-	 * Assign the includes settings bitmap to the specified tape.
+	 * Assign the tape include settings EnumSet to the specified tape.
 	 * 
-	 * The includes settings bitmap specifies what elements of the tape should be available
-	 * for inclusion when the timeline is generated. This value currently corresponds to the
-	 * following: Misc=1, Filler=2, End=4, Intro=8. The full number should be each of the
-	 * desired settings options ORed together.
+	 * The includes settings EnumSet specifies what elements of the tape should be available
+	 * for inclusion when the timeline is generated.
 	 * @param tape
 	 * @param includesBitmap
 	 * @return The previous include settings assigned to that tape..
@@ -71,16 +72,31 @@ public class Settings {
 		TapeIncludes.putAll(tapeIncludes);
 	}
 	
+	/**
+	 * Remove the tape include settings EnumSet for the specified tape.
+	 * @param tape
+	 * @return The EnumSet that was just removed from the settings.
+	 */
 	public EnumSet<TapeInclude> removeTapeIncludes(Tape tape)
 	{
 		return TapeIncludes.remove(tape);
 	}
 	
+	/**
+	 * Get the tape include settings EnumSet for the specified tape.
+	 * @param tape
+	 * @return The includes settings EnumSet specifying what elements of the tape should be available
+	 * for inclusion when the timeline is generated.
+	 */
 	public EnumSet<TapeInclude> getTapeIncludes(Tape tape)
 	{
 		return TapeIncludes.get(tape);
 	}
 	
+	/**
+	 * Clear all of the tape include settings for all tapes.
+	 * @return HashMap of the tape include settings before being cleared, keyed by tape.
+	 */
 	@SuppressWarnings("unchecked")
 	public HashMap<Tape, EnumSet<Settings.TapeInclude>> clearTapeIncludes()
 	{
@@ -94,6 +110,7 @@ public class Settings {
 	// BIASES
 	
 	/**
+	 * 
 	 * @return the biases
 	 */
 	@SuppressWarnings("unchecked")
