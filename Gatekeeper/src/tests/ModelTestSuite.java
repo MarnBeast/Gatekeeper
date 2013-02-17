@@ -9,7 +9,8 @@ import org.junit.runners.Suite.SuiteClasses;
 @SuiteClasses({
 	ClipTest.class,
 	ClipTimeTest.class,
-	LandmarkTest.class
+	LandmarkTest.class,
+	SettingsTest.class
 })
 public class ModelTestSuite {
 
