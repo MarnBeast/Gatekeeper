@@ -211,6 +211,11 @@ public class SettingsTest {
 			assertTrue(retTypeList.contains(landmarks[i]));
 		}
 		
+		// addLandmarks
+		assertTrue(settings.addLandmarks(retTypeList));
+		assertFalse(settings.addLandmarks(retTypeList));
+		
+		// addLandmark null exception
 		boolean fail = true;
 		try {
 			settings.addLandmark(null);
@@ -221,6 +226,25 @@ public class SettingsTest {
 		{
 			fail();
 		}
+		
+		// addLandmarks null exception
+		fail = true;
+		settings.clearLandmarks();
+		
+		ArrayList<Landmark> nullLandmarkList = new ArrayList<Landmark>();
+		nullLandmarkList.addAll(retTypeList);
+		nullLandmarkList.add(null);
+		
+		try {
+			settings.addLandmarks(nullLandmarkList);
+		} catch (NullPointerException e) {
+			fail = false;
+		}
+		if(fail)
+		{
+			fail();
+		}
+		
 		
 		assertTrue(settings.addLandmark(landmark1));
 		assertFalse(settings.addLandmark(landmark1));

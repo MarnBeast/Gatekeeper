@@ -110,7 +110,8 @@ public class Settings {
 	// BIASES
 	
 	/**
-	 * Returns a HashMap of all bias percentages saved in the settings, keyed by typeID.
+	 * Returns a HashMap of all bias percentages saved in the settings, keyed by typeID. This only
+	 * includes percentages explicitly set using addBias or addBiases, not default biases.
 	 * 
 	 * This HashMap is a clone. To manipulate the biases in the settings, use addBias, addBiases,
 	 * removeBias, and clearBiases.
@@ -122,7 +123,7 @@ public class Settings {
 	}
 	
 	/**
-	 * Add a bias to the settings.
+	 * Add a type bias to the settings.
 	 * 
 	 * This is used to skew the chances that a specific clip type is chosen for the timeline.
 	 * A bias percentage may be any number from 0 to Double.MAX_VALUE.
@@ -160,6 +161,11 @@ public class Settings {
 		}
 	}
 	
+	/**
+	 * Add a range of type biases to the settings.
+	 * @param biases A HashMap<Integer, Double> of the type biases to add to the settings, keyed by type ID.
+	 * @throws IllegalArgumentException if a bias value in the passed in HashMap is negative.
+	 */
 	public void addBiases(HashMap<Integer, Double> biases)
 	{
 		Iterator<Double> percentageBiases = biases.values().iterator();
@@ -173,6 +179,12 @@ public class Settings {
 		Biases.putAll(biases);
 	}
 	
+	/**
+	 * Removes the bias assigned to the specified type ID. This resets the bias to the default 100.0 and removes it from the
+	 * HashMap returned by getBiases.
+	 * @param typeID The type of clip to remove bias.
+	 * @return The previous bias percentage assigned to the specified type ID.
+	 */
 	public double removeBias(int typeID)
 	{
 		Double retValDouble = Biases.remove(typeID);
@@ -185,6 +197,11 @@ public class Settings {
 		}
 	}
 	
+	/**
+	 * Returns the bias assigned to the given type. If no bias exists, 100.0 is returned as the default.
+	 * @param typeID The type for which a bias should be retrieved.
+	 * @return The bias assigned to the given type, or 100.0 if no bias is found.
+	 */
 	public double getBias(int typeID)
 	{
 		Double retValDouble = Biases.get(typeID);
@@ -197,6 +214,12 @@ public class Settings {
 		}
 	}
 	
+	/**
+	 * Clears all assigned biases in the settings. After clearing, all calls to getBias will return 100.0,
+	 * and all calls to getBiases will return an empty HashMap, until new biases are assigned with setBias
+	 * or setBiases.
+	 * @return The HashMap of bias percentages mapped to type IDs prior to being cleared.
+	 */
 	@SuppressWarnings("unchecked")
 	public HashMap<Integer, Double> clearBiases()
 	{
@@ -210,13 +233,22 @@ public class Settings {
 	// LANDMARKS
 	
 	/**
-	 * @return the landmarks
+	 * Returns an ArrayList of Landmarks saved in the settings.
+	 * @return ArrayList of Landmarks.
 	 */
 	@SuppressWarnings("unchecked")
 	public ArrayList<Landmark> getLandmarks() {
 		return (ArrayList<Landmark>) Landmarks.clone();
 	}
 	
+	/**
+	 * Adds a landmark to the settings.
+	 * @param landmark
+	 * @return True if the landmark was added successfully. False if a landmark
+	 * already exists with a landmark time equal to the one specified in the passed
+	 * in landmark.
+	 * @throws NullPointerException if the landmark is null.
+	 */
 	public boolean addLandmark(Landmark landmark)
 	{
 		if(landmark == null)
@@ -238,6 +270,16 @@ public class Settings {
 		return Landmarks.add(landmark);
 	}
 	
+	/**
+	 * Adds a landmark to the settings.
+	 * 
+	 * Landmarks are used to specify that a clip with the given type ID MUST be played
+	 * at the given time in the timeline.
+	 * @param typeID
+	 * @param time
+	 * @return True if the landmark was added successfully. False if a landmark
+	 * already exists with a landmark time equal to the time specified.
+	 */
 	public boolean addLandmark(int typeID, double time)
 	{
 		Iterator<Landmark> landIter = Landmarks.iterator();
@@ -254,15 +296,54 @@ public class Settings {
 		return Landmarks.add(landmark);
 	}
 	
+	/**
+	 * Add a list of Landmarks to the settings landmarks list.
+	 * @param landmarks
+	 * @return True if the landmark was added successfully. False if a landmark
+	 * already exists with a landmark time equal to the time specified in one of
+	 * the landmarks in the passed in list.
+	 * @throws NullPointerException if one of the landmarks in the passed in list
+	 * is null.
+	 */
 	public boolean addLandmarks(ArrayList<Landmark> landmarks) {
+		Iterator<Landmark> landIter = landmarks.iterator();
+		while(landIter.hasNext())
+		{
+			Landmark nextLandmark = landIter.next();
+			if(nextLandmark == null)
+			{
+				throw new NullPointerException("Landmark must not be null");
+			}
+			double time = nextLandmark.getTime();
+			
+			Iterator<Landmark> landIter2 = Landmarks.iterator();
+			while(landIter2.hasNext())
+			{
+				Landmark nextLandmark2 = landIter2.next();
+				if(nextLandmark2.getTime() == time)
+				{
+					return false;
+				}
+			}
+		}
 		return Landmarks.addAll(landmarks);
 	}
 	
+	/**
+	 * Remove the specified landmark from the settings landmarks.
+	 * @param landmark The landmark to remove.
+	 * @return true if the settings contained the specified landmark.
+	 */
 	public boolean removeLandmark(Landmark landmark)
 	{
 		return Landmarks.remove(landmark);
 	}
 	
+	/**
+	 * Clears all landmarks from the settings.
+	 * @return An ArrayList of the Landmarks that existed in the settings
+	 * before being cleared.
+	 */
 	@SuppressWarnings("unchecked")
 	public ArrayList<Landmark> clearLandmarks()
 	{
@@ -272,6 +353,13 @@ public class Settings {
 		return retList;	
 	}
 	
+	/**
+	 * The available Tape Include options. These are used in the settings TapeIncludes methods
+	 * to specify what base types of the given Tapes should be made available when choosing clips
+	 * for the timeline.
+	 * @author MarnBeast
+	 *
+	 */
 	public static enum TapeInclude
 	{
 		INTRO,
