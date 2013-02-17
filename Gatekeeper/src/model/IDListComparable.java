@@ -56,4 +56,14 @@ public class IDListComparable<T extends Comparable<T>> extends IDList<T>{
 		// and return the new ID.
 		return super.getsetID(value);
 	}
+	
+	public int convertID(IDList<T> list, int ID)
+	{
+		T value = list.get(ID);
+		if(value == null)
+		{
+			throw new IllegalArgumentException("ID was invalid for the passed in list.");
+		}
+		return getsetID(value);
+	}
 }
