@@ -36,28 +36,26 @@ public class SettingsTest {
 		int numIndexes = 6;
 		Settings settings = new Settings();
 		Tape[] tapes = new Tape[]{new Tape(), new Tape(), new Tape(), new Tape(), new Tape(), new Tape()};
-		@SuppressWarnings("unchecked")
-		EnumSet<Settings.TapeInclude>[] includeValues = (EnumSet<Settings.TapeInclude>[]) new Object[]
-				{
-					EnumSet.of(Settings.TapeInclude.INTRO),
-					EnumSet.of(Settings.TapeInclude.INTRO, Settings.TapeInclude.END, Settings.TapeInclude.FILLER),
-					EnumSet.of(Settings.TapeInclude.INTRO, Settings.TapeInclude.END, Settings.TapeInclude.FILLER, Settings.TapeInclude.MISC),
-					EnumSet.of(Settings.TapeInclude.END, Settings.TapeInclude.FILLER, Settings.TapeInclude.MISC),
-					EnumSet.of(Settings.TapeInclude.INTRO, Settings.TapeInclude.END),
-					EnumSet.of(Settings.TapeInclude.FILLER, Settings.TapeInclude.MISC)
-				};
+		ArrayList<EnumSet<Settings.TapeInclude>> includeValues = new ArrayList<EnumSet<Settings.TapeInclude>>();
+		includeValues.add(EnumSet.of(Settings.TapeInclude.INTRO));
+		includeValues.add(EnumSet.of(Settings.TapeInclude.INTRO, Settings.TapeInclude.END, Settings.TapeInclude.FILLER));
+		includeValues.add(EnumSet.of(Settings.TapeInclude.INTRO, Settings.TapeInclude.END, Settings.TapeInclude.FILLER, Settings.TapeInclude.MISC));
+		includeValues.add(EnumSet.of(Settings.TapeInclude.END, Settings.TapeInclude.FILLER, Settings.TapeInclude.MISC));
+		includeValues.add(EnumSet.of(Settings.TapeInclude.INTRO, Settings.TapeInclude.END));
+		includeValues.add(EnumSet.of(Settings.TapeInclude.FILLER, Settings.TapeInclude.MISC));
+
 		Tape tapeNotInTypeIDs = new Tape();
 
 		
 		for (int i = 0; i<numIndexes; i++)
 		{
-			settings.addTapeIncludes(tapes[i], includeValues[i]);
+			settings.addTapeIncludes(tapes[i], includeValues.get(i));
 			// getTapeIncludes
 			assertEquals(i+1, settings.getTapeIncludes().size());
 			assertTrue(settings.getTapeIncludes().containsKey(tapes[i]));
-			assertEquals(includeValues[i],settings.getTapeIncludes().get(tapes[i]));
+			assertEquals(includeValues.get(i),settings.getTapeIncludes().get(tapes[i]));
 			// getTapeIncludes
-			assertEquals(includeValues[i],settings.getTapeIncludes(tapes[i]));
+			assertEquals(includeValues.get(i),settings.getTapeIncludes(tapes[i]));
 		}
 		assertNull(settings.getTapeIncludes(tapeNotInTypeIDs));	// getTapeIncludes should return null if key not found
 		
@@ -65,17 +63,17 @@ public class SettingsTest {
 		HashMap<Tape, EnumSet<Settings.TapeInclude>> testHashMap = new HashMap<>();
 		for (int i = 0; i<numIndexes; i++)
 		{
-			testHashMap.put(tapes[i], includeValues[(numIndexes-1)-i]);
+			testHashMap.put(tapes[i], includeValues.get((numIndexes-1)-i));
 		}
-		testHashMap.put(tapeNotInTypeIDs, includeValues[0]);
+		testHashMap.put(tapeNotInTypeIDs, includeValues.get(0));
 		
 		settings.addTapeIncludes(testHashMap);
 		assertEquals(numIndexes+1,settings.getTapeIncludes().size());
 		for(int i = 0; i<numIndexes; i++)
 		{
-			assertEquals(includeValues[(numIndexes-1)-i], settings.getTapeIncludes(tapes[i]));
+			assertEquals(includeValues.get((numIndexes-1)-i), settings.getTapeIncludes(tapes[i]));
 		}
-		assertEquals(includeValues[0], settings.getTapeIncludes(tapeNotInTypeIDs));
+		assertEquals(includeValues.get(0), settings.getTapeIncludes(tapeNotInTypeIDs));
 		
 		// getTapeIncludes - not testing for this anymore because I don't want to get a clone back, I want the actual collection.
 //		testHashMap = settings.getTapeIncludes();
