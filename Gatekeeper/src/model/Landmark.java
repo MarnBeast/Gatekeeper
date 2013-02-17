@@ -7,7 +7,10 @@ public class Landmark {
 	
 	/**
 	 * Maps a TypeID to a time in seconds.
-	 * Used for the Landmarks.
+	 * Used for the Settings Landmarks methods.
+	 * 
+	 * Landmarks are used to specify that a clip with the given type ID MUST be played
+	 * at the given time in the timeline.
 	 * @param TypeID TypeID to be assigned a time.
 	 * @param time The time that the TypeID should occur in seconds.
 	 */
@@ -26,7 +29,7 @@ public class Landmark {
 	}
 
 	/**
-	 * @param TypeID the TypeID to set
+	 * @param TypeID the type ID to set
 	 */
 	public void setTypeID(int typeID) {
 		TypeID = typeID;
