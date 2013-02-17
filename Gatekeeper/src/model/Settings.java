@@ -1,16 +1,29 @@
 package model;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
 
-
+/**
+ * Holds all of the user specified settings for generating a timeline.
+ * These include biases, tape includes, and landmarks.
+ * 
+ * Used in the TimelineBuilder, as well as in the Tape class to specify default settings.
+ * @author MarnBeast
+ */
 public class Settings {
 	
-	private HashMap<Tape, Integer> TapeIncludes;
+	private HashMap<Tape, EnumSet<TapeInclude>> TapeIncludes;
 	private HashMap<Integer, Double> Biases;
 	private ArrayList<Landmark> Landmarks;
 	
+	/**
+	 * Holds all of the user specified settings for generating a timeline.
+	 * These include biases, tape include settings, and landmarks.
+	 * 
+	 * Used in the TimelineBuilder, as well as in the Tape class to specify default settings.
+	 */
 	public Settings()
 	{
 		TapeIncludes = new HashMap<>();
@@ -22,6 +35,7 @@ public class Settings {
 	// TAPE INCLUDES
 	
 	/**
+	 * Returns a HashMap of all of the include settings bitmaps keyed by Tape.
 	 * @return the tapeIncludes
 	 */
 	@SuppressWarnings("unchecked")
@@ -29,31 +43,49 @@ public class Settings {
 		return (HashMap<Tape, Integer>) TapeIncludes.clone();
 	}
 	
-	public Integer addTapeIncludes(Tape tape, int includesBitmap)
+	/**
+	 * Assign the includes settings bitmap to the specified tape.
+	 * 
+	 * The includes settings bitmap specifies what elements of the tape should be available
+	 * for inclusion when the timeline is generated. This value currently corresponds to the
+	 * following: Misc=1, Filler=2, End=4, Intro=8. The full number should be each of the
+	 * desired settings options ORed together.
+	 * @param tape
+	 * @param includesBitmap
+	 * @return The previous include settings assigned to that tape..
+	 */
+	public EnumSet<TapeInclude> addTapeIncludes(Tape tape, EnumSet<TapeInclude> includes)
 	{
-		return TapeIncludes.put(tape, includesBitmap);
+		return TapeIncludes.put(tape, includes);
 	}
 	
-	public void addTapeIncludes(HashMap<Tape, Integer> tapeIncludes)
+	/**
+	 * Assign the tape includes listed in the hashmap to the current settings.
+	 * 
+	 * Any include settings mapped to a tape already in the current settings will overwrite
+	 * whatever is currently mapped to that tape.
+	 * @param tapeIncludes HashMap mapping a number of Tapes to includes bitmaps.
+	 */
+	public void addTapeIncludes(HashMap<Tape, EnumSet<TapeInclude>> tapeIncludes)
 	{
 		TapeIncludes.putAll(tapeIncludes);
 	}
 	
-	public Integer removeTapeIncludes(Tape tape)
+	public EnumSet<TapeInclude> removeTapeIncludes(Tape tape)
 	{
 		return TapeIncludes.remove(tape);
 	}
 	
-	public Integer getTapeIncludes(Tape tape)
+	public EnumSet<TapeInclude> getTapeIncludes(Tape tape)
 	{
 		return TapeIncludes.get(tape);
 	}
 	
 	@SuppressWarnings("unchecked")
-	public HashMap<Tape, Integer> clearTapeIncludes()
+	public HashMap<Tape, EnumSet<Settings.TapeInclude>> clearTapeIncludes()
 	{
-		HashMap<Tape, Integer> retMap;
-		retMap = (HashMap<Tape, Integer>) TapeIncludes.clone();
+		HashMap<Tape, EnumSet<Settings.TapeInclude>> retMap;
+		retMap = (HashMap<Tape, EnumSet<Settings.TapeInclude>>) TapeIncludes.clone();
 		TapeIncludes.clear();
 		return retMap;
 	}
@@ -173,5 +205,14 @@ public class Settings {
 		ArrayList<Landmark> retList;
 		retList = (ArrayList<Landmark>)Landmarks.clone();
 		Landmarks.clear();
-		return retList;	}
+		return retList;	
+	}
+	
+	public static enum TapeInclude
+	{
+		INTRO,
+		END,
+		FILLER,
+		MISC;
+	}
 }

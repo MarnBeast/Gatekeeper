@@ -3,6 +3,7 @@ package tests;
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
 
 import model.Landmark;
@@ -35,7 +36,16 @@ public class SettingsTest {
 		int numIndexes = 6;
 		Settings settings = new Settings();
 		Tape[] tapes = new Tape[]{new Tape(), new Tape(), new Tape(), new Tape(), new Tape(), new Tape()};
-		int[] includeValues = new int[]{0,2,4,-2,Integer.MAX_VALUE, Integer.MIN_VALUE};
+		@SuppressWarnings("unchecked")
+		EnumSet<Settings.TapeInclude>[] includeValues = (EnumSet<Settings.TapeInclude>[]) new Object[]
+				{
+					EnumSet.of(Settings.TapeInclude.INTRO),
+					EnumSet.of(Settings.TapeInclude.INTRO, Settings.TapeInclude.END, Settings.TapeInclude.FILLER),
+					EnumSet.of(Settings.TapeInclude.INTRO, Settings.TapeInclude.END, Settings.TapeInclude.FILLER, Settings.TapeInclude.MISC),
+					EnumSet.of(Settings.TapeInclude.END, Settings.TapeInclude.FILLER, Settings.TapeInclude.MISC),
+					EnumSet.of(Settings.TapeInclude.INTRO, Settings.TapeInclude.END),
+					EnumSet.of(Settings.TapeInclude.FILLER, Settings.TapeInclude.MISC)
+				};
 		Tape tapeNotInTypeIDs = new Tape();
 
 		
@@ -45,14 +55,14 @@ public class SettingsTest {
 			// getTapeIncludes
 			assertEquals(i+1, settings.getTapeIncludes().size());
 			assertTrue(settings.getTapeIncludes().containsKey(tapes[i]));
-			assertEquals(includeValues[i],(int)settings.getTapeIncludes().get(tapes[i]));
+			assertEquals(includeValues[i],settings.getTapeIncludes().get(tapes[i]));
 			// getTapeIncludes
-			assertEquals(includeValues[i],(int)settings.getTapeIncludes(tapes[i]));
+			assertEquals(includeValues[i],settings.getTapeIncludes(tapes[i]));
 		}
 		assertNull(settings.getTapeIncludes(tapeNotInTypeIDs));	// getTapeIncludes should return null if key not found
 		
 		// setTapeIncludes
-		HashMap<Tape, Integer> testHashMap = new HashMap<>();
+		HashMap<Tape, EnumSet<Settings.TapeInclude>> testHashMap = new HashMap<>();
 		for (int i = 0; i<numIndexes; i++)
 		{
 			testHashMap.put(tapes[i], includeValues[(numIndexes-1)-i]);
@@ -63,20 +73,20 @@ public class SettingsTest {
 		assertEquals(numIndexes+1,settings.getTapeIncludes().size());
 		for(int i = 0; i<numIndexes; i++)
 		{
-			assertEquals(includeValues[(numIndexes-1)-i], (int)settings.getTapeIncludes(tapes[i]));
+			assertEquals(includeValues[(numIndexes-1)-i], settings.getTapeIncludes(tapes[i]));
 		}
-		assertEquals(includeValues[0], (int)settings.getTapeIncludes(tapeNotInTypeIDs));
+		assertEquals(includeValues[0], settings.getTapeIncludes(tapeNotInTypeIDs));
 		
-		// getTapeIncludes
-		testHashMap = settings.getTapeIncludes();
-		HashMap<Tape, Integer> testHashMap2 = settings.getTapeIncludes();
-		testHashMap.put(tapes[0], testHashMap.get(tapes[0])+1);
-		// assert that getTapeIncludes is a clone
-		assertEquals(settings.getTapeIncludes(tapes[0]), testHashMap2.get(tapes[0]));
-		assertFalse(settings.getTapeIncludes(tapes[0]) == testHashMap.get(tapes[0]));
-		testHashMap.clear();
-		testHashMap2.clear();
-		assertFalse(settings.getTapeIncludes().size() == 0);
+		// getTapeIncludes - not testing for this anymore because I don't want to get a clone back, I want the actual collection.
+//		testHashMap = settings.getTapeIncludes();
+//		HashMap<Tape, Integer> testHashMap2 = settings.getTapeIncludes();
+//		testHashMap.put(tapes[0], testHashMap.get(tapes[0])+1);
+//		// assert that getTapeIncludes is a clone
+//		assertEquals(settings.getTapeIncludes(tapes[0]), testHashMap2.get(tapes[0]));
+//		assertFalse(settings.getTapeIncludes(tapes[0]) == testHashMap.get(tapes[0]));
+//		testHashMap.clear();
+//		testHashMap2.clear();
+//		assertFalse(settings.getTapeIncludes().size() == 0);
 		
 		// removeTapeIncludes
 		settings.removeTapeIncludes(tapeNotInTypeIDs);
@@ -136,16 +146,16 @@ public class SettingsTest {
 		}
 		assertEquals(percentageBiases[0], settings.getBias(typeIDNotInTypeIDs), 0.001);
 		
-		// getBiases
-		testHashMap = settings.getBiases();
-		HashMap<Integer, Double> testHashMap2 = settings.getBiases();
-		testHashMap.put(typeIDs[0], testHashMap.get(typeIDs[0])+1.0);
-		// assert that getBiases is a clone
-		assertEquals(settings.getBias(typeIDs[0]), testHashMap2.get(typeIDs[0]), 0.001);
-		assertFalse(settings.getBias(typeIDs[0]) == testHashMap.get(typeIDs[0]));
-		testHashMap.clear();
-		testHashMap2.clear();
-		assertFalse(settings.getBiases().size() == 0);
+		// getBiases - not testing for this anymore because I don't want to get a clone back, I want the actual collection.
+//		testHashMap = settings.getBiases();
+//		HashMap<Integer, Double> testHashMap2 = settings.getBiases();
+//		testHashMap.put(typeIDs[0], testHashMap.get(typeIDs[0])+1.0);
+//		// assert that getBiases is a clone
+//		assertEquals(settings.getBias(typeIDs[0]), testHashMap2.get(typeIDs[0]), 0.001);
+//		assertFalse(settings.getBias(typeIDs[0]) == testHashMap.get(typeIDs[0]));
+//		testHashMap.clear();
+//		testHashMap2.clear();
+//		assertFalse(settings.getBiases().size() == 0);
 		
 		// removeBias
 		settings.removeBias(typeIDNotInTypeIDs);
