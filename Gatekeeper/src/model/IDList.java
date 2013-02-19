@@ -1,23 +1,31 @@
 package model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 public class IDList<T> {
 
-	private ArrayList<T> valuesArrayList;
+	private Map<Integer,T> idkeymap;
+	private Map<T,Integer> valuekeymap;
+	
+	private ArrayList<Integer> clearedIDs;
+	private int minUnassignedID;
 	
 	
 	public IDList()
 	{
-		valuesArrayList = new ArrayList<T>();
+		idkeymap = new HashMap<Integer,T>();
+		valuekeymap = new HashMap<T,Integer>();
+		minUnassignedID = 0;
 	}
 	
 	
-	@SuppressWarnings("unchecked")
-	public ArrayList<T> toArrayList()
+	public ArrayList<T> values()
 	{
-		return (ArrayList<T>) valuesArrayList.clone();
+		ArrayList<T> values = (ArrayList<T>) idkeymap.values();
+		return values;
 	}
 	
 	
@@ -25,57 +33,99 @@ public class IDList<T> {
 	{
 		if(value == null)
 		{
-			throw new NullPointerException("typeT cannot be null.");
+			throw new NullPointerException("value cannot be null.");
 		}
-		if(!valuesArrayList.contains(value))
+		if(!idkeymap.containsValue(value))
 		{
-			valuesArrayList.add(value);
+			int id = minUnassignedID;
+			if(clearedIDs.size() > 0)
+			{
+				id = clearedIDs.remove(0);
+			}
+			idkeymap.put(id, value);
+			valuekeymap.put(value, id);
+			if(id == minUnassignedID)
+			{
+				minUnassignedID++;
+			}
+			return id;
 		}
-
-		return valuesArrayList.indexOf(value);
+		else 
+		{
+			return valuekeymap.get(value);
+		}
 	}
+	
+	
+	public int getID(T value)
+	{
+		Integer ID = valuekeymap.get(value);
+		if(ID != null)
+		{
+			return ID;
+		}
+		else 
+		{
+			return -1;
+		}
+	}
+	
 	
 	public T get(int ID)
 	{
-		try {
-			return valuesArrayList.get(ID);
-		} catch (IndexOutOfBoundsException e) {
-			return null;
-		}
+		return idkeymap.get(ID);
 	}
+	
 	
 	public T remove(int ID)
 	{
-		try {
-			return valuesArrayList.remove(ID);
-		} catch (IndexOutOfBoundsException e) {
-			return null;
+		T value = idkeymap.remove(ID);
+		if(value != null)
+		{
+			valuekeymap.remove(value);
+			
+			if(ID >= (minUnassignedID - 1))
+			{
+				minUnassignedID = ID;
+			}
+			else
+			{
+				clearedIDs.add(ID);
+			}
 		}
+		
+		return value;
 	}
+	
 	
 	public int remove(T value)
 	{
-		int ID = valuesArrayList.indexOf(value);
-		if(ID != -1)
+		Integer ID = valuekeymap.remove(value);
+		if(ID!=null)
 		{
-			valuesArrayList.remove(value);
+			idkeymap.remove(ID);
+			
+			if(ID >= (minUnassignedID - 1))
+			{
+				minUnassignedID = ID;
+			}
+			else
+			{
+				clearedIDs.add(ID);
+			}
+			
+			return ID;
 		}
-
-		return ID;
+		else
+		{
+			return -1;
+		}
 	}
 	
 	
 	public void merge(IDList<T> list)
 	{
-		Iterator<T> listIter = list.toArrayList().iterator();
-		while(listIter.hasNext())
-		{
-			T listValue = listIter.next();
-			if(!valuesArrayList.contains(listValue))
-			{
-				valuesArrayList.add(listValue);
-			}
-		}
+		addValues(list.idkeymap.values());
 	}
 	
 	
@@ -87,5 +137,37 @@ public class IDList<T> {
 			throw new IllegalArgumentException("ID was invalid for the passed in list.");
 		}
 		return getsetID(value);
+	}
+	
+	
+	
+	public void addValues(Iterable<T> values)
+	{
+		Iterator<T> valuesIter = values.iterator();
+		while(valuesIter.hasNext())
+		{
+			T value = valuesIter.next();
+			this.getsetID(value);
+		}
+	}
+	
+	
+	public void addValues(T[] values)
+	{
+		for(int i = 0; i < values.length; i++)
+		{
+			this.getsetID(values[i]);
+		}
+	}
+	
+	
+	public IDList<T> clone()
+	{
+		IDList<T> clone = new IDList<>();
+		clone.idkeymap = this.idkeymap;
+		clone.valuekeymap = this.valuekeymap;
+		clone.clearedIDs = this.clearedIDs;
+		clone.minUnassignedID = this.minUnassignedID;
+		return clone;
 	}
 }
