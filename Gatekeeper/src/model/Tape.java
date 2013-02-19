@@ -64,9 +64,9 @@ public class Tape implements Serializable
 	 * Returns a list containing all of the type strings added to this tape.
 	 * @return the list of type strings associated with this tape.
 	 */
-	public ArrayList<String> getTypes()
+	public String[] getTypeStrings()
 	{
-		return allTypesIdList.values();
+		return allTypesIdList.values().toArray(new String[0]);
 	}
 	
 	/**
