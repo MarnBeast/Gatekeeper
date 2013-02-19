@@ -1,6 +1,5 @@
 package model;
 
-import java.util.Collection;
 import java.util.Iterator;
 
 public class IDListComparable<T extends Comparable<T>> extends IDList<T>{
