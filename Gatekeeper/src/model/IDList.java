@@ -1,14 +1,14 @@
 package model;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 
 public class IDList<T> {
 
-	private Map<Integer,T> idkeymap;
-	private Map<T,Integer> valuekeymap;
+	private HashMap<Integer,T> idkeymap;
+	private HashMap<T,Integer> valuekeymap;
 	
 	private ArrayList<Integer> clearedIDs;
 	private int minUnassignedID;
@@ -18,14 +18,14 @@ public class IDList<T> {
 	{
 		idkeymap = new HashMap<Integer,T>();
 		valuekeymap = new HashMap<T,Integer>();
+		clearedIDs = new ArrayList<Integer>();
 		minUnassignedID = 0;
 	}
 	
 	
-	public ArrayList<T> values()
+	public Collection<T> values()
 	{
-		ArrayList<T> values = (ArrayList<T>) idkeymap.values();
-		return values;
+		return idkeymap.values();
 	}
 	
 	
@@ -123,6 +123,15 @@ public class IDList<T> {
 	}
 	
 	
+	public void clear()
+	{
+		idkeymap.clear();
+		valuekeymap.clear();
+		clearedIDs.clear();
+		minUnassignedID = 0;
+	}
+	
+	
 	public void merge(IDList<T> list)
 	{
 		addValues(list.idkeymap.values());
@@ -161,11 +170,12 @@ public class IDList<T> {
 	}
 	
 	
+	@SuppressWarnings("unchecked")
 	public IDList<T> clone()
 	{
 		IDList<T> clone = new IDList<>();
-		clone.idkeymap = this.idkeymap;
-		clone.valuekeymap = this.valuekeymap;
+		clone.idkeymap = (HashMap<Integer, T>) this.idkeymap.clone();
+		clone.valuekeymap = (HashMap<T, Integer>) this.valuekeymap.clone();
 		clone.clearedIDs = this.clearedIDs;
 		clone.minUnassignedID = this.minUnassignedID;
 		return clone;
