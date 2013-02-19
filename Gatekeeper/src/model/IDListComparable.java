@@ -94,4 +94,12 @@ public class IDListComparable<T extends Comparable<T>> extends IDList<T>{
 		}
 		return getsetID(value);
 	}
+	
+	
+	public IDList<T> clone()
+	{
+		IDListComparable<T> clone = new IDListComparable<T>();
+		clone.merge(this);
+		return clone;
+	}
 }
