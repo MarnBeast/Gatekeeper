@@ -10,7 +10,9 @@ import org.junit.runners.Suite.SuiteClasses;
 	ClipTest.class,
 	ClipTimeTest.class,
 	LandmarkTest.class,
-	SettingsTest.class
+	SettingsTest.class,
+	IDListTest.class,
+	IDListComparableTest.class
 })
 public class ModelTestSuite {
 
