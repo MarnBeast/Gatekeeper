@@ -8,10 +8,13 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.nio.file.InvalidPathException;
 import java.util.ArrayList;
+import java.util.HashMap;
+
+import model.Clip.ClipListener;
 import javafx.scene.media.Media;
 
 
-public class Tape implements Serializable
+public class Tape implements Serializable, ClipListener
 {	
 	/**
 	 * 
@@ -20,11 +23,10 @@ public class Tape implements Serializable
 
 	private String name;
 	
-	final private String[] defaultTypes = new String[]
-	{ "Intro", "Ending", "Filler" };
 	
 	private IDListComparable<String> allTypesIdList;
-	private ArrayList<Clip> miscArrayList;
+	private HashMap<Integer, Integer> typeClipCount;
+	private ArrayList<Clip> allClipsArrayList;
 	
 	private Settings defaultSettings;
 
@@ -32,8 +34,11 @@ public class Tape implements Serializable
 	public Tape()
 	{
 		allTypesIdList = new IDListComparable<String>();
-		allTypesIdList.addValues(defaultTypes);
-		miscArrayList = new ArrayList<Clip>();
+		allTypesIdList.addValues(Constants.DEFAULT_TYPES);
+		
+		typeClipCount = new HashMap<Integer,Integer>();
+				
+		allClipsArrayList = new ArrayList<Clip>();
 		
 		defaultSettings = new Settings();
 		name = "";
@@ -80,7 +85,15 @@ public class Tape implements Serializable
 		return allTypesIdList.getsetID(typeString);
 	}
 
-
+	/**
+	 * Returns the type string assigned to the given type ID.
+	 * @param typeID The type ID.
+	 * @return The corresponding type string.
+	 */
+	public String getTypeString(int typeID)
+	{
+		return allTypesIdList.get(typeID);
+	}
 	
 	
 	// Add Clip Methods
@@ -89,7 +102,7 @@ public class Tape implements Serializable
 	{
 		Media media = new Media(videoClipPath);
 		Clip clip = new Clip(media, 0.0, media.durationProperty().get().toSeconds());
-		miscArrayList.add(clip);
+		allClipsArrayList.add(clip);
 		return clip;
 	}
 
@@ -111,12 +124,14 @@ public class Tape implements Serializable
 				// We don't care about totalTime's value at this time because it will
 				// be changed later. Thus, totalTime + 1 is a placeholder.
 				clips[i] = new Clip(media, totalTime, totalTime + 1); 
-				miscArrayList.add(clips[i]);
+				clips[i].addClipListener(this);
+				allClipsArrayList.add(clips[i]);
 				totalTime += media.durationProperty().get().toSeconds();
 			}
 			else {
 				clips[i] = new Clip(media, 0.0, media.durationProperty().get().toSeconds()); 
-				miscArrayList.add(clips[i]);
+				clips[i].addClipListener(this);
+				allClipsArrayList.add(clips[i]);
 			}
 
 		}
@@ -191,6 +206,36 @@ public class Tape implements Serializable
 		in.close();
 		fileIn.close();
 		return tape;
+	}
+
+
+	@Override
+	public void typeAdded(int typeID) {
+		int typeCount = typeClipCount.containsKey(typeID) ? typeClipCount.get(typeID) : 0;
+		typeClipCount.put(typeID, typeCount + 1);
+	}
+
+
+	@Override
+	public void typeRemoved(int typeID) {
+		int typeCount = typeClipCount.containsKey(typeID) ? typeClipCount.get(typeID) : 0;
+		if(typeCount < 1)
+		{
+			if(typeID >= Constants.DEFAULT_TYPES.length)
+			{
+				allTypesIdList.remove(typeID);
+				typeClipCount.remove(typeID);
+			}
+		}
+		else
+		{
+			typeClipCount.put(typeID, typeCount - 1);
+		}
+	}
+	
+	public void removeClip(Clip clip)
+	{
+		clip.clearTypeIDs();
 	}
 	
 }
