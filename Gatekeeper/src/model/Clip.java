@@ -1,6 +1,8 @@
 package model;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Vector;
 
 import javafx.scene.media.Media;
 import java.io.Serializable;
@@ -27,6 +29,14 @@ public class Clip implements Serializable
 	private double StartTime;
 	private double TotalTime;
 	
+	private Vector<ClipListener> listeners;
+	
+	
+	public interface ClipListener
+	{
+		public void typeAdded(int typeID);
+		public void typeRemoved(int typeID);
+	}
 	
 	
 	/**
@@ -197,7 +207,12 @@ public class Clip implements Serializable
 		}
 		else
 		{
-			return TypeIDs.add(typeID);
+			boolean ret = TypeIDs.add(typeID);
+			if(ret)
+			{
+				fireTypeAddedEvent(typeID);
+			}
+			return ret;
 		}
 	}
 	
@@ -209,7 +224,12 @@ public class Clip implements Serializable
 	 * @return
 	 */
 	public boolean removeTypeID(int typeID) {
-		return TypeIDs.remove((Integer)typeID);
+		boolean ret = TypeIDs.remove((Integer)typeID);
+		if(ret)
+		{
+			fireTypeRemovedEvent(typeID);
+		}
+		return ret;
 	}
 	
 	/**
@@ -223,6 +243,10 @@ public class Clip implements Serializable
 		ArrayList<Integer> retList;
 		retList = (ArrayList<Integer>) TypeIDs.clone();
 		TypeIDs.clear();
+		for (Integer typeID : retList) 
+		{
+			fireTypeRemovedEvent(typeID);
+		}
 		return retList;
 	}
 	
@@ -299,6 +323,55 @@ public class Clip implements Serializable
 	private void setPlacePercent(double placePercent) {
 		PlacePercent = placePercent;
 	}
+	
+	
+	
+	
 
+	public void addClipListener(ClipListener listener)
+	{
+		if(listeners == null)
+		{
+			listeners = new Vector<ClipListener>();
+		}
+		listeners.add(listener);
+	}
+	
+	
+	public void removeClipListener(ClipListener listener)
+	{
+		if(listeners != null)
+		{
+			listeners.remove(listener);
+		}
+	}
+	
+	
+	private void fireTypeAddedEvent(int typeID)
+	{
+		if(listeners != null && listeners.isEmpty())
+		{
+			Iterator<ClipListener> iterator = listeners.iterator();
+			while(iterator.hasNext())
+			{
+				ClipListener listener = (ClipListener) iterator.next();
+				listener.typeAdded(typeID);
+			}
+		}
+	}
+	
+	
+	private void fireTypeRemovedEvent(int typeID)
+	{
+		if(listeners != null && listeners.isEmpty())
+		{
+			Iterator<ClipListener> iterator = listeners.iterator();
+			while(iterator.hasNext())
+			{
+				ClipListener listener = (ClipListener) iterator.next();
+				listener.typeRemoved(typeID);
+			}
+		}
+	}
 	
 }
