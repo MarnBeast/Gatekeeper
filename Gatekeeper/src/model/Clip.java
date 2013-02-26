@@ -327,7 +327,11 @@ public class Clip implements Serializable
 	
 	
 	
-
+	/**
+	 * Adds a ClipListener to the Clip, such that the listener may be notified when a listener
+	 * event is triggered.
+	 * @param listener
+	 */
 	public void addClipListener(ClipListener listener)
 	{
 		if(listeners == null)
@@ -337,7 +341,11 @@ public class Clip implements Serializable
 		listeners.add(listener);
 	}
 	
-	
+	/**
+	 * Removes a ClipListener from the Clip, such that the listener will no longer be notified when
+	 * a listener event is triggered.
+	 * @param listener
+	 */
 	public void removeClipListener(ClipListener listener)
 	{
 		if(listeners != null)
@@ -347,6 +355,11 @@ public class Clip implements Serializable
 	}
 	
 	
+	/**
+	 * Iterates through all of the clip listeners firing the typeAdded event.
+	 * This should be called whenever a clip has a type ID added to TypeIDs.
+	 * @param typeID
+	 */
 	private void fireTypeAddedEvent(int typeID)
 	{
 		if(listeners != null && listeners.isEmpty())
@@ -361,6 +374,11 @@ public class Clip implements Serializable
 	}
 	
 	
+	/**
+	 * Iterates through all of the clip listeners firing the typeRemoved event.
+	 * This should be done whenever a clip has a type ID removed from TypeIDs.
+	 * @param typeID
+	 */
 	private void fireTypeRemovedEvent(int typeID)
 	{
 		if(listeners != null && listeners.isEmpty())
