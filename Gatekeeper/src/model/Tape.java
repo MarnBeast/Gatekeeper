@@ -153,6 +153,16 @@ public class Tape implements Serializable, ClipListener
 		
 		return clips;
 	}
+	
+	
+	/**
+	 * Returns all clips stored in the tape.
+	 * @return Array of all clips stored in this tape.
+	 */
+	public Clip[] getClips()
+	{
+		return allClipsArrayList.toArray(new Clip[0]);		
+	}
 
 
 	/**
