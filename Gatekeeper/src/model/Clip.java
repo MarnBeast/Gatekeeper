@@ -362,7 +362,7 @@ public class Clip implements Serializable
 	 */
 	private void fireTypeAddedEvent(int typeID)
 	{
-		if(listeners != null && listeners.isEmpty())
+		if(listeners != null && !listeners.isEmpty())
 		{
 			Iterator<ClipListener> iterator = listeners.iterator();
 			while(iterator.hasNext())
@@ -381,7 +381,7 @@ public class Clip implements Serializable
 	 */
 	private void fireTypeRemovedEvent(int typeID)
 	{
-		if(listeners != null && listeners.isEmpty())
+		if(listeners != null && !listeners.isEmpty())
 		{
 			Iterator<ClipListener> iterator = listeners.iterator();
 			while(iterator.hasNext())
