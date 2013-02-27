@@ -8,6 +8,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.nio.file.InvalidPathException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 
 import model.Clip.ClipListener;
@@ -154,6 +155,40 @@ public class Tape implements Serializable, ClipListener
 	}
 
 
+	/**
+	 * Removes the clip from the tape and clears its type IDs.
+	 * @param clip The clip to remove.
+	 */
+	public void removeClip(Clip clip)
+	{
+		clip.clearTypeIDs();
+		allClipsArrayList.remove(clip);
+	}
+	
+	/**
+	 * Removes the clips from the tape and clears their type IDs.
+	 * @param clips The clips to remove.
+	 */
+	public void removeClips(Collection<Clip> clips)
+	{
+		for(Clip clip : clips)
+		{
+			clip.clearTypeIDs();
+		}
+		allClipsArrayList.removeAll(clips);
+	}
+	
+	/**
+	 * Clears all clips from the tape.
+	 */
+	public void clearClips()
+	{
+		allClipsArrayList.clear();
+		allTypesIdList.clear();
+		allTypesIdList.addValues(Constants.DEFAULT_TYPES);
+		typeClipCount.clear();
+	}
+
 	
 	/**
 	 * @return the defaultSettings
@@ -172,7 +207,7 @@ public class Tape implements Serializable, ClipListener
 
 
 	/**
-	 * 
+	 * Serializes tape to a file.
 	 * @param filepath
 	 * @throws IOException 
 	 */
@@ -190,7 +225,7 @@ public class Tape implements Serializable, ClipListener
 	}
 	
 	/**
-	 * 
+	 * Deserializes tape from a file.
 	 * @param filepath
 	 * @return
 	 * @throws IOException
@@ -236,11 +271,6 @@ public class Tape implements Serializable, ClipListener
 		{
 			typeClipCount.put(typeID, typeCount - 1);
 		}
-	}
-	
-	public void removeClip(Clip clip)
-	{
-		clip.clearTypeIDs();
 	}
 	
 }
