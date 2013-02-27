@@ -19,6 +19,7 @@ import tests.PartiallyParameterized.NonParameterized;
 
 
 import model.Clip;
+import model.Clip.ClipListener;
 
 @RunWith(value = PartiallyParameterized.class)
 public class ClipTest 
@@ -329,6 +330,64 @@ public class ClipTest
 		{
 			assertTrue(retTypeList.contains(testids[i]));
 		}
+	}
+	
+	
+	@Test
+	@NonParameterized
+	public void clipListenerTest()
+	{
+		double totalTime = 160.0;
+		Clip clip1 = new Clip(fullClipPath, 0, totalTime);
+		
+		class TestListener implements ClipListener
+		{
+			public int typeIDAdded = 0;
+			public int typeIDRemoved = 0;
+			@Override
+			public void typeRemoved(int typeID)
+			{
+				typeIDRemoved = typeID;
+			}
+			
+			@Override
+			public void typeAdded(int typeID)
+			{
+				typeIDAdded = typeID;
+			}
+		};
+
+		TestListener listener1 = new TestListener();
+		TestListener listener2 = new TestListener();
+		
+		clip1.addClipListener(listener1);
+		clip1.addClipListener(listener2);
+		
+		int testTypeID = 5;
+		clip1.addTypeID(testTypeID);
+		assertEquals(testTypeID, listener1.typeIDAdded);
+		assertEquals(testTypeID, listener2.typeIDAdded);
+		assertEquals(0, listener1.typeIDRemoved);
+		assertEquals(0, listener2.typeIDRemoved);
+		
+		int testTypeID2 = 6;
+		clip1.addTypeID(testTypeID2);
+		assertEquals(testTypeID2, listener1.typeIDAdded);
+		assertEquals(testTypeID2, listener2.typeIDAdded);
+		assertEquals(0, listener1.typeIDRemoved);
+		assertEquals(0, listener2.typeIDRemoved);
+		
+		clip1.removeTypeID(testTypeID);
+		assertEquals(testTypeID2, listener1.typeIDAdded);
+		assertEquals(testTypeID2, listener2.typeIDAdded);
+		assertEquals(testTypeID, listener1.typeIDRemoved);
+		assertEquals(testTypeID, listener2.typeIDRemoved);
+		
+		clip1.removeTypeID(testTypeID2);
+		assertEquals(testTypeID2, listener1.typeIDAdded);
+		assertEquals(testTypeID2, listener2.typeIDAdded);
+		assertEquals(testTypeID2, listener1.typeIDRemoved);
+		assertEquals(testTypeID2, listener2.typeIDRemoved);
 	}
 	
 }
