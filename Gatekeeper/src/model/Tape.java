@@ -33,15 +33,20 @@ public class Tape implements Serializable, ClipListener
 	
 	public Tape()
 	{
-		allTypesIdList = new IDListComparable<String>();
-		allTypesIdList.addValues(Constants.DEFAULT_TYPES);
+		this("");
+	}
+	
+	public Tape(String name)
+	{
+		this.allTypesIdList = new IDListComparable<String>();
+		this.allTypesIdList.addValues(Constants.DEFAULT_TYPES);
 		
-		typeClipCount = new HashMap<Integer,Integer>();
+		this.typeClipCount = new HashMap<Integer,Integer>();
 				
-		allClipsArrayList = new ArrayList<Clip>();
+		this.allClipsArrayList = new ArrayList<Clip>();
 		
-		defaultSettings = new Settings();
-		name = "";
+		this.defaultSettings = new Settings();
+		this.name = name;
 	}
 
 
