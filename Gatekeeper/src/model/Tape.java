@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.HashMap;
 
 import model.Clip.ClipListener;
+import javafx.collections.MapChangeListener;
 import javafx.scene.media.Media;
 
 
@@ -107,7 +108,8 @@ public class Tape implements Serializable, ClipListener
 	public Clip addClip(String videoClipPath)
 	{
 		Media media = new Media(videoClipPath);
-		Clip clip = new Clip(media, 0.0, media.durationProperty().get().toSeconds());
+		loadMediaMetaData(media);
+		Clip clip = new Clip(media, 0.0, media.getDuration().toSeconds());
 		allClipsArrayList.add(clip);
 		return clip;
 	}
@@ -124,6 +126,7 @@ public class Tape implements Serializable, ClipListener
 		for(int i = 0; i < videoClipPaths.length; i++)
 		{
 			Media media = new Media(videoClipPaths[i]);
+			loadMediaMetaData(media);
 			if(calculateRelativeClipTimes)
 			{	
 				// startTime should be the total time accumulated up until this clip.
@@ -132,10 +135,10 @@ public class Tape implements Serializable, ClipListener
 				clips[i] = new Clip(media, totalTime, totalTime + 1); 
 				clips[i].addClipListener(this);
 				allClipsArrayList.add(clips[i]);
-				totalTime += media.durationProperty().get().toSeconds();
+				totalTime += media.getDuration().toSeconds();
 			}
 			else {
-				clips[i] = new Clip(media, 0.0, media.durationProperty().get().toSeconds()); 
+				clips[i] = new Clip(media, 0.0, media.getDuration().toSeconds()); 
 				clips[i].addClipListener(this);
 				allClipsArrayList.add(clips[i]);
 			}
@@ -152,6 +155,30 @@ public class Tape implements Serializable, ClipListener
 		}
 		
 		return clips;
+	}
+
+	private boolean medialoaded = false;
+	private void loadMediaMetaData(Media media)
+	{
+		medialoaded = false;
+		media.getMetadata().addListener(new MapChangeListener<String, Object>() {
+	        @Override
+	        public void onChanged(Change<? extends String, ? extends Object> ch) {
+	          if (ch.wasAdded()) {
+	        	  medialoaded = true;
+	          }
+	        }
+	      });
+		while(!medialoaded)
+		{
+			try
+			{
+				Thread.sleep(10);
+			} catch (InterruptedException e)
+			{
+				// Just keep checking and waiting
+			}
+		}
 	}
 	
 	
