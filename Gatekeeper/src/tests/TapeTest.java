@@ -1,13 +1,34 @@
 package tests;
 
 import static org.junit.Assert.*;
+
+import java.io.File;
+
+import javafx.application.Application;
+import javafx.stage.Stage;
+
+import model.Clip;
 import model.Constants;
 import model.Settings;
 import model.Tape;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class TapeTest {
+public class TapeTest extends Application{
+	
+	@BeforeClass
+	public static void beforeClass()
+	{
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				Application.launch();
+			}
+		}).start();
+	}
 
 	@Test
 	public void constructorTest()
@@ -58,5 +79,43 @@ public class TapeTest {
 		
 		assertNotNull(tape.getClips());
 		assertEquals(0, tape.getClips().length);
+	}
+	
+	@Test
+	public void nameTest()
+	{
+		String testName = "test name";
+		Tape tape = new Tape(testName);
+		assertEquals(testName, tape.getName());
+		testName = "test name 2!";
+		tape.setName(testName);
+		assertEquals(testName, tape.getName());
+		testName = null;
+		tape.setName(testName);
+		assertEquals(testName, tape.getName());
+	}
+	
+	@Test
+	public void addClipTypeTest()
+	{
+		Tape tape = new Tape();
+		
+		String clipPath = "src/tests/Clip01.mp4";
+		String clip2Path = "src/tests/Clip 02.mp4";
+		clipPath = new File(clipPath).toURI().toString();
+		clip2Path = new File(clip2Path).toURI().toString();
+		
+		Clip testClip = tape.addClip(clipPath);	
+		assertEquals(clipPath, testClip.getVideo().getSource());
+		
+		Clip testClip2 = tape.addClip(clip2Path);
+		assertEquals(clip2Path, testClip2.getVideo().getSource());
+	}
+
+	
+	
+	@Override
+	public void start(Stage primaryStage) throws Exception
+	{
 	}
 }
