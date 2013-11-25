@@ -4,32 +4,25 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 
-import javafx.application.Application;
-import javafx.stage.Stage;
+import javafx.embed.swing.JFXPanel;
 
 import model.Clip;
 import model.Constants;
 import model.Settings;
 import model.Tape;
 
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
 
-public class TapeTest extends Application{
-	
-	@BeforeClass
-	public static void beforeClass()
-	{
-		new Thread(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				Application.launch();
-			}
-		}).start();
-	}
 
+public class TapeTest
+{
+	@Before		
+	public void noSetup() 
+	{
+		new JFXPanel();	// prepare JavaFX toolkit and environment
+	}
+	
 	@Test
 	public void constructorTest()
 	{
@@ -96,7 +89,7 @@ public class TapeTest extends Application{
 	}
 	
 	@Test
-	public void addClipTypeTest()
+	public void addClipTest()
 	{
 		Tape tape = new Tape();
 		
@@ -110,12 +103,11 @@ public class TapeTest extends Application{
 		
 		Clip testClip2 = tape.addClip(clip2Path);
 		assertEquals(clip2Path, testClip2.getVideo().getSource());
+		
+		Clip[] tapeClips = tape.getClips();
+		assertEquals(2.0, tapeClips.length, 0.0);
+		assertSame(testClip, tapeClips[0]);
+		assertSame(testClip2, tapeClips[1]);
 	}
-
 	
-	
-	@Override
-	public void start(Stage primaryStage) throws Exception
-	{
-	}
 }

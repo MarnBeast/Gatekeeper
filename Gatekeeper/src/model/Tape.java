@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 
+import javafx.scene.media.MediaPlayer;
+
 import model.Clip.ClipListener;
 import javafx.collections.MapChangeListener;
 import javafx.scene.media.Media;
@@ -108,8 +110,7 @@ public class Tape implements Serializable, ClipListener
 	public Clip addClip(String videoClipPath)
 	{
 		Media media = new Media(videoClipPath);
-		loadMediaMetaData(media);
-		Clip clip = new Clip(media, 0.0, media.getDuration().toSeconds());
+		Clip clip = new Clip(media);
 		allClipsArrayList.add(clip);
 		return clip;
 	}
@@ -126,16 +127,23 @@ public class Tape implements Serializable, ClipListener
 		for(int i = 0; i < videoClipPaths.length; i++)
 		{
 			Media media = new Media(videoClipPaths[i]);
-			loadMediaMetaData(media);
 			if(calculateRelativeClipTimes)
 			{	
 				// startTime should be the total time accumulated up until this clip.
 				// We don't care about totalTime's value at this time because it will
-				// be changed later. Thus, totalTime + 1 is a placeholder.
+				// be changed later. Thus, totalTime + 1 is a placeholder. We use a
+				// placeholder because we don't want Clip loading the media meta data
+				// for us - we want control over that ourselves.
 				clips[i] = new Clip(media, totalTime, totalTime + 1); 
 				clips[i].addClipListener(this);
 				allClipsArrayList.add(clips[i]);
-				totalTime += media.getDuration().toSeconds();
+				
+				if(clips[i].loadMediaMetaData(5000)) {
+					totalTime += media.getDuration().toSeconds();
+				}
+				else {
+					// TODO: Add Error Logging Here
+				}
 			}
 			else {
 				clips[i] = new Clip(media, 0.0, media.getDuration().toSeconds()); 
@@ -155,30 +163,6 @@ public class Tape implements Serializable, ClipListener
 		}
 		
 		return clips;
-	}
-
-	private boolean medialoaded = false;
-	private void loadMediaMetaData(Media media)
-	{
-		medialoaded = false;
-		media.getMetadata().addListener(new MapChangeListener<String, Object>() {
-	        @Override
-	        public void onChanged(Change<? extends String, ? extends Object> ch) {
-	          if (ch.wasAdded()) {
-	        	  medialoaded = true;
-	          }
-	        }
-	      });
-		while(!medialoaded)
-		{
-			try
-			{
-				Thread.sleep(10);
-			} catch (InterruptedException e)
-			{
-				// Just keep checking and waiting
-			}
-		}
 	}
 	
 	

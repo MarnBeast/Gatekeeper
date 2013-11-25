@@ -1,12 +1,14 @@
 package tests;
 
 import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.*;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
+import javafx.embed.swing.JFXPanel;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaException;
 
@@ -48,7 +50,7 @@ public class ClipTest
 	   };
 	   return Arrays.asList(data);
 	 }
-			
+	 	
 	@Before		
 	public void noSetup() 
 	{
@@ -57,6 +59,8 @@ public class ClipTest
 		testPlacePercent = testStartTime * 100.0 / testTotalTime;
 		fullClipPath = new File(clipPath).toURI().toString();
 		fullClip2Path = new File(clip2Path).toURI().toString();
+		
+		new JFXPanel();	// prepare JavaFX toolkit and environment
 	}
 	
 	
@@ -390,4 +394,20 @@ public class ClipTest
 		assertEquals(testTypeID2, listener2.typeIDRemoved);
 	}
 	
+	
+	@Test
+	@NonParameterized
+	public void loadMediaMetaDataTest()
+	{
+		double totalTime = 160.0;
+		Clip clip1 = new Clip(fullClipPath, 0, totalTime);
+
+		assertThat(clip1.getVideo().getDuration().toSeconds(), equalTo(Double.NaN));
+		clip1.loadMediaMetaData();
+		assertThat(clip1.getVideo().getDuration().toSeconds(), not(equalTo(Double.NaN)));
+		
+		Clip clip2 = new Clip(fullClip2Path);
+		assertThat(clip2.getStartTime(), equalTo(0.0));
+		assertThat(clip2.getTotalTime(), not(equalTo(1.0)));
+	}
 }

@@ -5,7 +5,11 @@ import java.util.Iterator;
 import java.util.Vector;
 
 import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+
 import java.io.Serializable;
+
+import com.sun.media.jfxmedia.events.PlayerEvent;
 
 /**
  * A Clip represents a segment of a Tape. A clip has a video clip associated with it,
@@ -21,13 +25,17 @@ import java.io.Serializable;
  */
 public class Clip implements Serializable
 {
-	private static final long serialVersionUID = 1L;
+	private static final long SERIAL_VERSION_UID = 1L;
+	private static final int LOAD_MEDIA_TIMEOUT = 5000;
 	private ArrayList<Clip> Chains;
 	private Media VideoClip;
 	private ArrayList<Integer> TypeIDs;
-	private double PlacePercent;
-	private double StartTime;
-	private double TotalTime;
+	private double PlacePercent = 0.0;
+	private double StartTime = 0.0;
+	private double TotalTime = 0.0;
+
+	
+	private boolean mediaLoaded = false;
 	
 	private Vector<ClipListener> listeners;
 	
@@ -72,8 +80,6 @@ public class Clip implements Serializable
 	 * timeline.
 	 * 
 	 * @param videoPath The path to the specific video that this clip is referencing.
-	 * @param startTime The time that the video occurs in the original unshuffled tape.
-	 * @param totalTime The entire length of the original tape that this clip came from.
 	 * 
 	 * @throws IllegalArgumentException
 	 * @throws MediaException
@@ -87,6 +93,58 @@ public class Clip implements Serializable
 		this.setPlacePercent(startTime, totalTime);
 	}
 	
+	/**
+	 * A Clip represents a segment of a Tape. A clip has a video clip associated with it,
+	 * as well as optionally a list of types describing the contents of the video clip and
+	 * a list of chains linking this clip with other clips that must only be shown after
+	 * this clip. A clip must have a start time set, as well as the total runtime of the
+	 * tape that it was taken from. This helps the user determine where the clip occurred
+	 * in the original video, and is used for pacing purposes when picking clips for the
+	 * timeline. Without these specified, the Clip will attempt to load the media metadata
+	 * and set totalTime to the media duration. If that fails, it will simply be set to 1.0.
+	 * 
+	 * 
+	 * @param videoClip The specific video that this clip is referencing.
+	 * 
+	 * @throws IllegalArgumentException
+	 * @throws MediaException
+	 * @throws NullPointerException
+	 */
+	public Clip(Media videoClip)
+	{
+		this(videoClip, 0.0, 1.0);
+		if(this.loadMediaMetaData() && VideoClip != null)
+		{
+			this.setPlacePercent(0.0, VideoClip.getDuration().toSeconds());
+		}
+	}
+	
+	/**
+	 * A Clip represents a segment of a Tape. A clip has a video clip associated with it,
+	 * as well as optionally a list of types describing the contents of the video clip and
+	 * a list of chains linking this clip with other clips that must only be shown after
+	 * this clip. A clip must have a start time set, as well as the total runtime of the
+	 * tape that it was taken from. This helps the user determine where the clip occurred
+	 * in the original video, and is used for pacing purposes when picking clips for the
+	 * timeline. Without these specified, the Clip will attempt to load the media metadata
+	 * and set totalTime to the media duration. If that fails, it will simply be set to 1.0.
+	 * 
+	 * @param videoPath The path to the specific video that this clip is referencing.
+	 * @param startTime The time that the video occurs in the original unshuffled tape.
+	 * @param totalTime The entire length of the original tape that this clip came from.
+	 * 
+	 * @throws IllegalArgumentException
+	 * @throws MediaException
+	 * @throws NullPointerException
+	 */
+	public Clip(String videoPath)
+	{
+		this(videoPath, 0.0, 1.0);
+		if(this.loadMediaMetaData() && VideoClip != null)
+		{
+			this.setPlacePercent(0.0, VideoClip.getDuration().toSeconds());
+		}
+	}
 	
 	
 	/*
@@ -104,6 +162,7 @@ public class Clip implements Serializable
 	 * @param videoClip the videoClip to set
 	 */
 	public void setVideo(Media videoClip) {
+		mediaLoaded = false;
 		VideoClip = videoClip;
 	}
 	
@@ -117,6 +176,63 @@ public class Clip implements Serializable
 	public void setVideo(String videoClipPath) {
 		Media videoClip = new Media(videoClipPath);
 		setVideo(videoClip);
+	}
+	
+	/**
+	 * Loads the media into a MediaPlayer and calls setOnReady, loading the media such that
+	 * its metadata may be determined. If this has been called before with the currently set
+	 * media and the metadata was successfully loaded, this will just return true rather than
+	 * attempt to load the media again.
+	 * 
+	 * @param timeout The maximum time to wait for the media to load, in milliseconds.
+	 * @return Boolean stating whether or not the media was successfully loaded.
+	 */
+	public boolean loadMediaMetaData(int timeout)
+	{		
+		if(!mediaLoaded && this.VideoClip != null)
+		{
+			MediaPlayer player = new MediaPlayer(this.VideoClip);
+			player.setOnReady(new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					mediaLoaded = true;
+				}
+			});
+			
+			int waitTime = 0;
+			while(!mediaLoaded && waitTime < timeout)
+			{
+				try
+				{
+					Thread.sleep(10);
+					waitTime += 10;
+				} catch (InterruptedException e)
+				{
+					// Just keep checking and waiting
+				}
+			}
+			
+			player.setOnReady(null);
+		}
+		
+		return mediaLoaded;
+	}
+	
+	/**
+	 * Loads the media into a MediaPlayer and calls setOnReady, loading the media such that
+	 * its metadata may be determined. If this has been called before with the currently set
+	 * media and the metadata was successfully loaded, this will just return true rather than
+	 * attempt to load the media again.
+	 * 
+	 * This uses the default timeout of 5 seconds.
+	 * 
+	 * @return Boolean stating whether or not the media was successfully loaded.
+	 */
+	public boolean loadMediaMetaData()
+	{
+		return loadMediaMetaData(LOAD_MEDIA_TIMEOUT);
 	}
 	
 	
