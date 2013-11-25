@@ -29,7 +29,7 @@ public class Clip implements Serializable
 	private static final int LOAD_MEDIA_TIMEOUT = 5000;
 	private ArrayList<Clip> Chains;
 	private Media VideoClip;
-	private ArrayList<Integer> TypeIDs;
+	private ArrayList<String> Types;
 	private double PlacePercent = 0.0;
 	private double StartTime = 0.0;
 	private double TotalTime = 0.0;
@@ -42,8 +42,8 @@ public class Clip implements Serializable
 	
 	public interface ClipListener
 	{
-		public void typeAdded(int typeID);
-		public void typeRemoved(int typeID);
+		public void typeAdded(String typeString);
+		public void typeRemoved(String typeString);
 	}
 	
 	
@@ -65,7 +65,7 @@ public class Clip implements Serializable
 	public Clip(Media videoClip, double startTime, double totalTime)
 	{
 		setVideo(videoClip);
-		TypeIDs = new ArrayList<Integer>();
+		Types = new ArrayList<String>();
 		Chains = new ArrayList<Clip>();
 		this.setPlacePercent(startTime, totalTime);
 	}
@@ -88,7 +88,7 @@ public class Clip implements Serializable
 	public Clip(String videoPath, double startTime, double totalTime)
 	{
 		setVideo(videoPath);
-		TypeIDs = new ArrayList<Integer>();
+		Types = new ArrayList<String>();
 		Chains = new ArrayList<Clip>();
 		this.setPlacePercent(startTime, totalTime);
 	}
@@ -305,8 +305,8 @@ public class Clip implements Serializable
 	 * @return the ArrayList of clip type IDs
 	 */
 	@SuppressWarnings("unchecked")
-	public ArrayList<Integer> getTypeIDs() {
-		return (ArrayList<Integer>) TypeIDs.clone();
+	public ArrayList<String> getTypes() {
+		return (ArrayList<String>) Types.clone();
 	}
 	
 	/**
@@ -316,17 +316,18 @@ public class Clip implements Serializable
 	 * @param typeID The ID of the type being added to this clip.
 	 * @return
 	 */
-	public boolean addTypeID(int typeID) {
-		if(TypeIDs.contains(typeID))
+	public boolean addType(String typeString) {
+		
+		if(Types.contains(typeString))
 		{
 			return false;
 		}
 		else
 		{
-			boolean ret = TypeIDs.add(typeID);
+			boolean ret = Types.add(typeString);
 			if(ret)
 			{
-				fireTypeAddedEvent(typeID);
+				fireTypeAddedEvent(typeString);
 			}
 			return ret;
 		}
@@ -339,11 +340,11 @@ public class Clip implements Serializable
 	 * @param typeID The ID of the type being removed from this clip
 	 * @return
 	 */
-	public boolean removeTypeID(int typeID) {
-		boolean ret = TypeIDs.remove((Integer)typeID);
+	public boolean removeType(String type) {
+		boolean ret = Types.remove(type);
 		if(ret)
 		{
-			fireTypeRemovedEvent(typeID);
+			fireTypeRemovedEvent(type);
 		}
 		return ret;
 	}
@@ -355,13 +356,13 @@ public class Clip implements Serializable
 	 * @return ArrayList of removed type IDs.
 	 */
 	@SuppressWarnings("unchecked")
-	public ArrayList<Integer> clearTypeIDs() {
-		ArrayList<Integer> retList;
-		retList = (ArrayList<Integer>) TypeIDs.clone();
-		TypeIDs.clear();
-		for (Integer typeID : retList) 
+	public ArrayList<String> clearTypes() {
+		ArrayList<String> retList;
+		retList = (ArrayList<String>) Types.clone();
+		Types.clear();
+		for (String type : retList) 
 		{
-			fireTypeRemovedEvent(typeID);
+			fireTypeRemovedEvent(type);
 		}
 		return retList;
 	}
@@ -476,7 +477,7 @@ public class Clip implements Serializable
 	 * This should be called whenever a clip has a type ID added to TypeIDs.
 	 * @param typeID
 	 */
-	private void fireTypeAddedEvent(int typeID)
+	private void fireTypeAddedEvent(String typeString)
 	{
 		if(listeners != null && !listeners.isEmpty())
 		{
@@ -484,7 +485,7 @@ public class Clip implements Serializable
 			while(iterator.hasNext())
 			{
 				ClipListener listener = (ClipListener) iterator.next();
-				listener.typeAdded(typeID);
+				listener.typeAdded(typeString);
 			}
 		}
 	}
@@ -495,7 +496,7 @@ public class Clip implements Serializable
 	 * This should be done whenever a clip has a type ID removed from TypeIDs.
 	 * @param typeID
 	 */
-	private void fireTypeRemovedEvent(int typeID)
+	private void fireTypeRemovedEvent(String typeString)
 	{
 		if(listeners != null && !listeners.isEmpty())
 		{
@@ -503,7 +504,7 @@ public class Clip implements Serializable
 			while(iterator.hasNext())
 			{
 				ClipListener listener = (ClipListener) iterator.next();
-				listener.typeRemoved(typeID);
+				listener.typeRemoved(typeString);
 			}
 		}
 	}

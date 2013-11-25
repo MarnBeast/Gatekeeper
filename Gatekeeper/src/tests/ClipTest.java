@@ -95,8 +95,8 @@ public class ClipTest
 
 			assertNotNull(clip.getChainedClips());
 			assertEquals(0, clip.getChainedClips().size());
-			assertNotNull(clip.getTypeIDs());
-			assertEquals(0, clip.getTypeIDs().size());
+			assertNotNull(clip.getTypes());
+			assertEquals(0, clip.getTypes().size());
 			
 			Media vid = clip.getVideo();
 			assertNotNull(vid);
@@ -109,8 +109,8 @@ public class ClipTest
 			
 			assertNotNull(clip.getChainedClips());
 			assertEquals(0, clip.getChainedClips().size());
-			assertNotNull(clip.getTypeIDs());
-			assertEquals(0, clip.getTypeIDs().size());
+			assertNotNull(clip.getTypes());
+			assertEquals(0, clip.getTypes().size());
 			
 			Media retvid = clip.getVideo();
 			assertNotNull(retvid);
@@ -220,38 +220,38 @@ public class ClipTest
 		double totalTime = 160.0;
 		double startTime = 45.0;
 		Clip clip = new Clip(fullClipPath, 0.0, 160.0);
-		assertEquals(0, clip.getTypeIDs().size());
+		assertEquals(0, clip.getTypes().size());
 		Clip clip1 = new Clip(fullClipPath, 0, totalTime);
 		Clip clip2 = new Clip(fullClipPath, 1, totalTime);
 		Clip clip3 = new Clip(fullClipPath, startTime, totalTime);
 		Clip clip4 = new Clip(fullClipPath, startTime+1, totalTime);
 		Clip clip5 = new Clip(fullClipPath, totalTime-1, totalTime);
-		Clip[] testids = new Clip[] {clip1,clip2,clip3,clip4,clip5};
+		Clip[] testTypes = new Clip[] {clip1,clip2,clip3,clip4,clip5};
 		boolean ret;
 		
-		for(int i = 0; i < testids.length; i++)
+		for(int i = 0; i < testTypes.length; i++)
 		{
-			ret = clip.addChainedClip(testids[i]);
+			ret = clip.addChainedClip(testTypes[i]);
 			assertTrue(ret);
 			assertEquals(i+1, clip.getChainedClips().size());
-			assertTrue(clip.getChainedClips().contains(testids[i]));
+			assertTrue(clip.getChainedClips().contains(testTypes[i]));
 		}
-		for(int i = 0; i < testids.length; i++)
+		for(int i = 0; i < testTypes.length; i++)
 		{
-			ret = clip.addChainedClip(testids[i]);
+			ret = clip.addChainedClip(testTypes[i]);
 			assertFalse(ret);
-			assertTrue(clip.getChainedClips().contains(testids[i]));
+			assertTrue(clip.getChainedClips().contains(testTypes[i]));
 		}
-		for(int i = testids.length - 1; i >= 0; i--)
+		for(int i = testTypes.length - 1; i >= 0; i--)
 		{
-			ret = clip.removeChainedClip(testids[i]);
+			ret = clip.removeChainedClip(testTypes[i]);
 			assertTrue(ret);
 			assertEquals(i, clip.getChainedClips().size());
-			assertFalse(clip.getChainedClips().contains(testids[i]));
+			assertFalse(clip.getChainedClips().contains(testTypes[i]));
 		}
-		for(int i = 0; i < testids.length; i++)
+		for(int i = 0; i < testTypes.length; i++)
 		{
-			ret = clip.addChainedClip(testids[i]);
+			ret = clip.addChainedClip(testTypes[i]);
 			assertEquals(i+1, clip.getChainedClips().size());
 		}
 
@@ -265,10 +265,10 @@ public class ClipTest
 		retClipsList = clip.clearChainedClips();
 		assertNotNull(retClipsList);
 		assertEquals(0, clip.getChainedClips().size());
-		assertEquals(testids.length, retClipsList.size());
-		for(int i = 0; i < testids.length; i++)
+		assertEquals(testTypes.length, retClipsList.size());
+		for(int i = 0; i < testTypes.length; i++)
 		{
-			assertTrue(retClipsList.contains(testids[i]));
+			assertTrue(retClipsList.contains(testTypes[i]));
 		}
 		
 		boolean fail = true;
@@ -286,53 +286,53 @@ public class ClipTest
 	
 	@Test
 	@NonParameterized
-	public void typeIDsTest()
+	public void typesTest()
 	{
 		Clip clip = new Clip(fullClipPath, 0.0, 160.0);
-		assertEquals(0, clip.getTypeIDs().size());
-		int[] testids = new int[] {1,2,3,4,5};
+		assertEquals(0, clip.getTypes().size());
+		String[] testTypes = new String[] {"type", "2", "Type", "", "More type"};
 		boolean ret;
 
-		for(int i = 0; i < testids.length; i++)
+		for(int i = 0; i < testTypes.length; i++)
 		{
-			ret = clip.addTypeID(testids[i]);
+			ret = clip.addType(testTypes[i]);
 			assertTrue(ret);
-			assertEquals(i+1, clip.getTypeIDs().size());
-			assertTrue(clip.getTypeIDs().contains(testids[i]));
+			assertEquals(i+1, clip.getTypes().size());
+			assertTrue(clip.getTypes().contains(testTypes[i]));
 		}
-		for(int i = 0; i < testids.length; i++)
+		for(int i = 0; i < testTypes.length; i++)
 		{
-			ret = clip.addTypeID(testids[i]);
+			ret = clip.addType(testTypes[i]);
 			assertFalse(ret);
-			assertTrue(clip.getTypeIDs().contains(testids[i]));
+			assertTrue(clip.getTypes().contains(testTypes[i]));
 		}
-		for(int i = testids.length - 1; i >= 0; i--)
+		for(int i = testTypes.length - 1; i >= 0; i--)
 		{
-			ret = clip.removeTypeID(testids[i]);
+			ret = clip.removeType(testTypes[i]);
 			assertTrue(ret);
-			assertEquals(i, clip.getTypeIDs().size());
-			assertFalse(clip.getTypeIDs().contains(testids[i]));
+			assertEquals(i, clip.getTypes().size());
+			assertFalse(clip.getTypes().contains(testTypes[i]));
 		}
-		for(int i = 0; i < testids.length; i++)
+		for(int i = 0; i < testTypes.length; i++)
 		{
-			ret = clip.addTypeID(testids[i]);
-			assertEquals(i+1, clip.getTypeIDs().size());
+			ret = clip.addType(testTypes[i]);
+			assertEquals(i+1, clip.getTypes().size());
 		}
 
-		ArrayList<Integer> retTypeList;
+		ArrayList<String> retTypeList;
 		// verify that we are getting a clone
-		retTypeList = clip.getTypeIDs();
+		retTypeList = clip.getTypes();
 		retTypeList.clear();
-		assertTrue(clip.getTypeIDs().size() > retTypeList.size());
+		assertTrue(clip.getTypes().size() > retTypeList.size());
 		
-		// clearTypeIDs
-		retTypeList = clip.clearTypeIDs();
+		// clearTypes
+		retTypeList = clip.clearTypes();
 		assertNotNull(retTypeList);
-		assertEquals(0, clip.getTypeIDs().size());
-		assertEquals(testids.length, retTypeList.size());
-		for(int i = 0; i < testids.length; i++)
+		assertEquals(0, clip.getTypes().size());
+		assertEquals(testTypes.length, retTypeList.size());
+		for(int i = 0; i < testTypes.length; i++)
 		{
-			assertTrue(retTypeList.contains(testids[i]));
+			assertTrue(retTypeList.contains(testTypes[i]));
 		}
 	}
 	
@@ -346,18 +346,18 @@ public class ClipTest
 		
 		class TestListener implements ClipListener
 		{
-			public int typeIDAdded = 0;
-			public int typeIDRemoved = 0;
+			public String typeAdded = "";
+			public String typeRemoved = "";
 			@Override
-			public void typeRemoved(int typeID)
+			public void typeRemoved(String type)
 			{
-				typeIDRemoved = typeID;
+				typeRemoved = type;
 			}
 			
 			@Override
-			public void typeAdded(int typeID)
+			public void typeAdded(String type)
 			{
-				typeIDAdded = typeID;
+				typeAdded = type;
 			}
 		};
 
@@ -367,31 +367,31 @@ public class ClipTest
 		clip1.addClipListener(listener1);
 		clip1.addClipListener(listener2);
 		
-		int testTypeID = 5;
-		clip1.addTypeID(testTypeID);
-		assertEquals(testTypeID, listener1.typeIDAdded);
-		assertEquals(testTypeID, listener2.typeIDAdded);
-		assertEquals(0, listener1.typeIDRemoved);
-		assertEquals(0, listener2.typeIDRemoved);
+		String testType = "Filler";
+		clip1.addType(testType);
+		assertEquals(testType, listener1.typeAdded);
+		assertEquals(testType, listener2.typeAdded);
+		assertEquals("", listener1.typeRemoved);
+		assertEquals("", listener2.typeRemoved);
 		
-		int testTypeID2 = 6;
-		clip1.addTypeID(testTypeID2);
-		assertEquals(testTypeID2, listener1.typeIDAdded);
-		assertEquals(testTypeID2, listener2.typeIDAdded);
-		assertEquals(0, listener1.typeIDRemoved);
-		assertEquals(0, listener2.typeIDRemoved);
+		String testType2 = "Funny";
+		clip1.addType(testType2);
+		assertEquals(testType2, listener1.typeAdded);
+		assertEquals(testType2, listener2.typeAdded);
+		assertEquals("", listener1.typeRemoved);
+		assertEquals("", listener2.typeRemoved);
 		
-		clip1.removeTypeID(testTypeID);
-		assertEquals(testTypeID2, listener1.typeIDAdded);
-		assertEquals(testTypeID2, listener2.typeIDAdded);
-		assertEquals(testTypeID, listener1.typeIDRemoved);
-		assertEquals(testTypeID, listener2.typeIDRemoved);
+		clip1.removeType(testType);
+		assertEquals(testType2, listener1.typeAdded);
+		assertEquals(testType2, listener2.typeAdded);
+		assertEquals(testType, listener1.typeRemoved);
+		assertEquals(testType, listener2.typeRemoved);
 		
-		clip1.removeTypeID(testTypeID2);
-		assertEquals(testTypeID2, listener1.typeIDAdded);
-		assertEquals(testTypeID2, listener2.typeIDAdded);
-		assertEquals(testTypeID2, listener1.typeIDRemoved);
-		assertEquals(testTypeID2, listener2.typeIDRemoved);
+		clip1.removeType(testType2);
+		assertEquals(testType2, listener1.typeAdded);
+		assertEquals(testType2, listener2.typeAdded);
+		assertEquals(testType2, listener1.typeRemoved);
+		assertEquals(testType2, listener2.typeRemoved);
 	}
 	
 	

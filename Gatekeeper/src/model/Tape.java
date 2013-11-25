@@ -1,5 +1,7 @@
 package model;
 
+import java.awt.List;
+import java.awt.print.Book;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -9,12 +11,10 @@ import java.io.Serializable;
 import java.nio.file.InvalidPathException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 
-import javafx.scene.media.MediaPlayer;
-
 import model.Clip.ClipListener;
-import javafx.collections.MapChangeListener;
 import javafx.scene.media.Media;
 
 
@@ -27,9 +27,7 @@ public class Tape implements Serializable, ClipListener
 
 	private String name;
 	
-	
-	private IDListComparable<String> allTypesIdList;
-	private HashMap<Integer, Integer> typeClipCount;
+	private HashMap<String, Integer> typeClipCount;
 	private ArrayList<Clip> allClipsArrayList;
 	
 	private Settings defaultSettings;
@@ -42,10 +40,11 @@ public class Tape implements Serializable, ClipListener
 	
 	public Tape(String name)
 	{
-		this.allTypesIdList = new IDListComparable<String>();
-		this.allTypesIdList.addValues(Constants.DEFAULT_TYPES);
-		
-		this.typeClipCount = new HashMap<Integer,Integer>();
+		this.typeClipCount = new HashMap<String,Integer>();
+		for (String defaultType : Constants.DEFAULT_TYPES)
+		{
+			this.typeClipCount.put(defaultType, 0);
+		}
 				
 		this.allClipsArrayList = new ArrayList<Clip>();
 		
@@ -75,34 +74,36 @@ public class Tape implements Serializable, ClipListener
 	// Manage Type IDs
 	
 	/**
-	 * Returns a list containing all of the type strings added to this tape.
-	 * @return the list of type strings associated with this tape.
+	 * Returns a sorted array containing all of the type strings added to this tape.
+	 * @return the array of type strings associated with this tape, sorted alphabetically.
 	 */
-	public String[] getTypeStrings()
+	public String[] getTypes()
 	{
-		return allTypesIdList.values().toArray(new String[0]);
+		ArrayList<String> list = new ArrayList<String>(typeClipCount.keySet());
+		Collections.sort(list);
+		return list.toArray(new String[0]);
 	}
 	
-	/**
-	 * Adds the type string to the Tape types if it doesn't exist and returns the type ID
-	 * assigned to the type.
-	 * @param typeString The string associated with the given type.
-	 * @return the type ID assigned to the type.
-	 */
-	public int getTypeID(String typeString)
-	{
-		return allTypesIdList.getsetID(typeString);
-	}
+//	/**
+//	 * Adds the type string to the Tape types if it doesn't exist and returns the type ID
+//	 * assigned to the type.
+//	 * @param typeString The string associated with the given type.
+//	 * @return the type ID assigned to the type.
+//	 */
+//	private int getSetTypeID(String typeString)
+//	{
+//		return allTypesList.getsetID(typeString);
+//	}
 
-	/**
-	 * Returns the type string assigned to the given type ID.
-	 * @param typeID The type ID.
-	 * @return The corresponding type string.
-	 */
-	public String getTypeString(int typeID)
-	{
-		return allTypesIdList.get(typeID);
-	}
+//	/**
+//	 * Returns the type string assigned to the given type ID.
+//	 * @param typeID The type ID.
+//	 * @return The corresponding type string.
+//	 */
+//	public String getTypeString(int typeID)
+//	{
+//		return allTypesList.get(typeID);
+//	}
 	
 	
 	// Add Clip Methods
@@ -114,6 +115,24 @@ public class Tape implements Serializable, ClipListener
 		allClipsArrayList.add(clip);
 		return clip;
 	}
+	
+	public void addClip(Clip clip)
+	{
+		allClipsArrayList.add(clip);
+		for (String type : clip.getTypes())
+		{
+			typeAdded(type);
+		}
+		clip.addClipListener(this);
+	}
+	
+	public void addClips(Clip[] clips)
+	{
+		for (Clip clip : clips)
+		{
+			addClip(clip);
+		}
+	}
 
 	public Clip[] addClips(String[] videoClipPaths)
 	{
@@ -123,30 +142,22 @@ public class Tape implements Serializable, ClipListener
 	public Clip[] addClips(String[] videoClipPaths, boolean calculateRelativeClipTimes)
 	{
 		Clip[] clips = new Clip[videoClipPaths.length];
+		double startTime = 0.0;
 		double totalTime = 0.0;
+		
+		// instantiate all of the clips and load their media, totaling the duration along the way
 		for(int i = 0; i < videoClipPaths.length; i++)
 		{
-			Media media = new Media(videoClipPaths[i]);
 			if(calculateRelativeClipTimes)
-			{	
-				// startTime should be the total time accumulated up until this clip.
-				// We don't care about totalTime's value at this time because it will
-				// be changed later. Thus, totalTime + 1 is a placeholder. We use a
-				// placeholder because we don't want Clip loading the media meta data
-				// for us - we want control over that ourselves.
-				clips[i] = new Clip(media, totalTime, totalTime + 1); 
+			{
+				clips[i] = new Clip(videoClipPaths[i]);
 				clips[i].addClipListener(this);
 				allClipsArrayList.add(clips[i]);
 				
-				if(clips[i].loadMediaMetaData(5000)) {
-					totalTime += media.getDuration().toSeconds();
-				}
-				else {
-					// TODO: Add Error Logging Here
-				}
+				totalTime += clips[i].getVideo().getDuration().toSeconds();
 			}
 			else {
-				clips[i] = new Clip(media, 0.0, media.getDuration().toSeconds()); 
+				clips[i] = new Clip(videoClipPaths[i]); 
 				clips[i].addClipListener(this);
 				allClipsArrayList.add(clips[i]);
 			}
@@ -155,10 +166,11 @@ public class Tape implements Serializable, ClipListener
 		
 		if(calculateRelativeClipTimes)
 		{
-			// Set the correct totalTime for all of these clips.
+			// Set the correct startTime and totalTime for all of these clips.
 			for(int i = 0; i < clips.length; i++)
 			{
-				clips[i].setPlacePercent(clips[i].getStartTime(), totalTime);
+				clips[i].setPlacePercent(startTime, totalTime);
+				startTime += clips[i].getVideo().getDuration().toSeconds();
 			}
 		}
 		
@@ -177,24 +189,32 @@ public class Tape implements Serializable, ClipListener
 
 
 	/**
-	 * Removes the clip from the tape and clears its type IDs.
+	 * Removes the clip from the tape and clears its types.
 	 * @param clip The clip to remove.
 	 */
 	public void removeClip(Clip clip)
 	{
-		clip.clearTypeIDs();
+		for (String type : clip.getTypes())
+		{
+			typeRemoved(type);
+		}
+		clip.removeClipListener(this);
 		allClipsArrayList.remove(clip);
 	}
 	
 	/**
-	 * Removes the clips from the tape and clears their type IDs.
+	 * Removes the clips from the tape and clears their types.
 	 * @param clips The clips to remove.
 	 */
 	public void removeClips(Collection<Clip> clips)
 	{
 		for(Clip clip : clips)
 		{
-			clip.clearTypeIDs();
+			for (String type : clip.getTypes())
+			{
+				typeRemoved(type);
+			}
+			clip.removeClipListener(this);
 		}
 		allClipsArrayList.removeAll(clips);
 	}
@@ -205,8 +225,6 @@ public class Tape implements Serializable, ClipListener
 	public void clearClips()
 	{
 		allClipsArrayList.clear();
-		allTypesIdList.clear();
-		allTypesIdList.addValues(Constants.DEFAULT_TYPES);
 		typeClipCount.clear();
 	}
 
@@ -271,26 +289,34 @@ public class Tape implements Serializable, ClipListener
 
 
 	@Override
-	public void typeAdded(int typeID) {
-		int typeCount = typeClipCount.containsKey(typeID) ? typeClipCount.get(typeID) : 0;
-		typeClipCount.put(typeID, typeCount + 1);
+	public void typeAdded(String typeString) {
+		int typeCount = typeClipCount.containsKey(typeString) ? typeClipCount.get(typeString) : 0;
+		typeClipCount.put(typeString, typeCount + 1);
 	}
 
 
 	@Override
-	public void typeRemoved(int typeID) {
-		int typeCount = typeClipCount.containsKey(typeID) ? typeClipCount.get(typeID) : 0;
-		if(typeCount < 1)
+	public void typeRemoved(String typeString) {
+		int typeCount = typeClipCount.containsKey(typeString) ? typeClipCount.get(typeString) : 0;
+		if(typeCount <= 1)
 		{
-			if(typeID >= Constants.DEFAULT_TYPES.length)
+			boolean isDefaultType = false;
+			for (String defaultType : Constants.DEFAULT_TYPES)
 			{
-				allTypesIdList.remove(typeID);
-				typeClipCount.remove(typeID);
+				if(typeString.equals(defaultType))
+				{
+					isDefaultType = true;
+					break;
+				}
+			}
+			if(!isDefaultType)
+			{
+				typeClipCount.remove(typeString);
 			}
 		}
 		else
 		{
-			typeClipCount.put(typeID, typeCount - 1);
+			typeClipCount.put(typeString, typeCount - 1);
 		}
 	}
 	

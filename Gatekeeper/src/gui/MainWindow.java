@@ -1,5 +1,12 @@
 package gui;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+
+import model.Constants;
+import model.Tape;
+
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -75,10 +82,37 @@ public class MainWindow extends Application{
 				player2.setWidth(500);
 				player3.setWidth(500);
 				player4.setWidth(500);
+				
+				SerializeTestTape("C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Main Tape\\");
 			}
 		});
 		
 		thread.start();
+	}
+	
+	
+	public void SerializeTestTape(String basePath)
+	{
+		File folder = new File(basePath);
+		File[] listOfFiles = folder.listFiles();
+		String[] filePaths = new String[listOfFiles.length];
+		int fileIndex = 0;
+		for (File file : listOfFiles)
+		{
+			filePaths[fileIndex] = file.toURI().toString();
+			fileIndex++;
+		}
+		
+		Tape tape = new Tape();
+		tape.addClips(filePaths, true);
+		try
+		{
+			tape.saveTape(basePath + "TestTape" + Constants.TAPE_EXTENSION);
+		} catch (IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 }
