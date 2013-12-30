@@ -22,4 +22,6 @@ public class Constants {
 			return TEMP_LOCATION_MAC_LIN;
 		}
 	}
+	
+	public static final int DEFAULT_TRANSITION_TIME = 5;
 }

@@ -46,10 +46,10 @@ public class MainWindow extends Application{
 		VBox vBox = new VBox();
 		hbox.getChildren().addAll(player, player2);//, player2, player3, player4);
 		hbox2.getChildren().addAll(player3, player4);//, player2, player3, player4);
-		hbox.setMargin(player, new Insets(5));
-		hbox.setMargin(player2, new Insets(5));
-		hbox2.setMargin(player3, new Insets(5));
-		hbox2.setMargin(player4, new Insets(5));
+		HBox.setMargin(player, new Insets(5));
+		HBox.setMargin(player2, new Insets(5));
+		HBox.setMargin(player3, new Insets(5));
+		HBox.setMargin(player4, new Insets(5));
 		vBox.getChildren().addAll(hbox, hbox2);
 		
 		root.getChildren().add(vBox);
