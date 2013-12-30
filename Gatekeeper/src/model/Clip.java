@@ -7,9 +7,16 @@ import java.util.Vector;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.net.URI;
+import java.net.URISyntaxException;
 
-import com.sun.media.jfxmedia.events.PlayerEvent;
 
 /**
  * A Clip represents a segment of a Tape. A clip has a video clip associated with it,
@@ -25,14 +32,17 @@ import com.sun.media.jfxmedia.events.PlayerEvent;
  */
 public class Clip implements Serializable
 {
-	private static final long SERIAL_VERSION_UID = 1L;
+	private static final long serialVersionUID = 1L;
 	private static final int LOAD_MEDIA_TIMEOUT = 5000;
-	private ArrayList<Clip> Chains;
-	private Media VideoClip;
-	private ArrayList<String> Types;
-	private double PlacePercent = 0.0;
-	private double StartTime = 0.0;
-	private double TotalTime = 0.0;
+	private ArrayList<Clip> chains;
+	private ArrayList<String> types;
+	private double placePercent = 0.0;
+	private double startTime = 0.0;
+	private double totalTime = 0.0;
+	
+	private transient Media videoClip = null;
+	private byte[] serializedVideoFile = null;	// this is used to store the video file when serializing the clip.
+	private String origVideoExtension = "";
 
 	
 	private boolean mediaLoaded = false;
@@ -65,8 +75,8 @@ public class Clip implements Serializable
 	public Clip(Media videoClip, double startTime, double totalTime)
 	{
 		setVideo(videoClip);
-		Types = new ArrayList<String>();
-		Chains = new ArrayList<Clip>();
+		types = new ArrayList<String>();
+		chains = new ArrayList<Clip>();
 		this.setPlacePercent(startTime, totalTime);
 	}
 	
@@ -87,9 +97,16 @@ public class Clip implements Serializable
 	 */
 	public Clip(String videoPath, double startTime, double totalTime)
 	{
-		setVideo(videoPath);
-		Types = new ArrayList<String>();
-		Chains = new ArrayList<Clip>();
+		if(videoPath != null && videoPath != "")
+		{
+			setVideo(videoPath);
+		}
+		else 
+		{
+			setVideo((Media)null); 
+		}
+		types = new ArrayList<String>();
+		chains = new ArrayList<Clip>();
 		this.setPlacePercent(startTime, totalTime);
 	}
 	
@@ -113,9 +130,9 @@ public class Clip implements Serializable
 	public Clip(Media videoClip)
 	{
 		this(videoClip, 0.0, 1.0);
-		if(this.loadMediaMetaData() && VideoClip != null)
+		if(videoClip != null && this.loadMediaMetaData() && this.videoClip != null)
 		{
-			this.setPlacePercent(0.0, VideoClip.getDuration().toSeconds());
+			this.setPlacePercent(0.0, this.videoClip.getDuration().toSeconds());
 		}
 	}
 	
@@ -140,9 +157,9 @@ public class Clip implements Serializable
 	public Clip(String videoPath)
 	{
 		this(videoPath, 0.0, 1.0);
-		if(this.loadMediaMetaData() && VideoClip != null)
+		if(videoPath != null && videoPath != "" && this.loadMediaMetaData() && this.videoClip != null)
 		{
-			this.setPlacePercent(0.0, VideoClip.getDuration().toSeconds());
+			this.setPlacePercent(0.0, this.videoClip.getDuration().toSeconds());
 		}
 	}
 	
@@ -155,7 +172,7 @@ public class Clip implements Serializable
 	 * @return the videoClip
 	 */
 	public Media getVideo() {
-		return VideoClip;
+		return videoClip;
 	}
 	
 	/**
@@ -163,18 +180,21 @@ public class Clip implements Serializable
 	 */
 	public void setVideo(Media videoClip) {
 		mediaLoaded = false;
-		VideoClip = videoClip;
+		this.videoClip = videoClip;
 	}
 	
 	/**
 	 * @param videoClip the videoClip to set
 	 * 
-	 * @throws IllegalArgumentException
 	 * @throws MediaException
-	 * @throws NullPointerException
 	 */
 	public void setVideo(String videoClipPath) {
-		Media videoClip = new Media(videoClipPath);
+		Media videoClip = null;
+		if(videoClipPath != null && videoClipPath != "")
+		{
+			videoClipPath = new File(videoClipPath).toURI().toString();
+			videoClip = new Media(videoClipPath);
+		}
 		setVideo(videoClip);
 	}
 	
@@ -189,9 +209,9 @@ public class Clip implements Serializable
 	 */
 	public boolean loadMediaMetaData(int timeout)
 	{		
-		if(!mediaLoaded && this.VideoClip != null)
+		if(!mediaLoaded && this.videoClip != null)
 		{
-			MediaPlayer player = new MediaPlayer(this.VideoClip);
+			MediaPlayer player = new MediaPlayer(this.videoClip);
 			player.setOnReady(new Runnable()
 			{
 				@Override
@@ -246,7 +266,7 @@ public class Clip implements Serializable
 	 */
 	@SuppressWarnings("unchecked")
 	public ArrayList<Clip> getChainedClips() {
-		return (ArrayList<Clip>) Chains.clone();
+		return (ArrayList<Clip>) chains.clone();
 	}
 	
 	/**
@@ -261,13 +281,13 @@ public class Clip implements Serializable
 		{
 			throw new NullPointerException("Clip must not be null");
 		}
-		if(Chains.contains(clip))
+		if(chains.contains(clip))
 		{
 			return false;
 		}
 		else
 		{
-			return Chains.add(clip);
+			return chains.add(clip);
 		}
 	}
 	
@@ -277,7 +297,7 @@ public class Clip implements Serializable
 	 * @return true if the removal was successful.
 	 */
 	public boolean removeChainedClip(Clip clip) {
-		return Chains.remove(clip);
+		return chains.remove(clip);
 	}
 	
 	/**
@@ -287,8 +307,8 @@ public class Clip implements Serializable
 	@SuppressWarnings("unchecked")
 	public ArrayList<Clip> clearChainedClips() {
 		ArrayList<Clip> retList;
-		retList = (ArrayList<Clip>) Chains.clone();
-		Chains.clear();
+		retList = (ArrayList<Clip>) chains.clone();
+		chains.clear();
 		return retList;
 	}
 	
@@ -306,7 +326,7 @@ public class Clip implements Serializable
 	 */
 	@SuppressWarnings("unchecked")
 	public ArrayList<String> getTypes() {
-		return (ArrayList<String>) Types.clone();
+		return (ArrayList<String>) types.clone();
 	}
 	
 	/**
@@ -318,13 +338,13 @@ public class Clip implements Serializable
 	 */
 	public boolean addType(String typeString) {
 		
-		if(Types.contains(typeString))
+		if(types.contains(typeString))
 		{
 			return false;
 		}
 		else
 		{
-			boolean ret = Types.add(typeString);
+			boolean ret = types.add(typeString);
 			if(ret)
 			{
 				fireTypeAddedEvent(typeString);
@@ -341,7 +361,7 @@ public class Clip implements Serializable
 	 * @return
 	 */
 	public boolean removeType(String type) {
-		boolean ret = Types.remove(type);
+		boolean ret = types.remove(type);
 		if(ret)
 		{
 			fireTypeRemovedEvent(type);
@@ -358,8 +378,8 @@ public class Clip implements Serializable
 	@SuppressWarnings("unchecked")
 	public ArrayList<String> clearTypes() {
 		ArrayList<String> retList;
-		retList = (ArrayList<String>) Types.clone();
-		Types.clear();
+		retList = (ArrayList<String>) types.clone();
+		types.clear();
 		for (String type : retList) 
 		{
 			fireTypeRemovedEvent(type);
@@ -385,7 +405,7 @@ public class Clip implements Serializable
 	 * @return the clip start time in seconds
 	 */
 	public double getStartTime() {
-		return StartTime;
+		return this.startTime;
 	}
 
 	/**
@@ -393,7 +413,7 @@ public class Clip implements Serializable
 	 * @return the tape total time in seconds
 	 */
 	public double getTotalTime() {
-		return TotalTime;
+		return totalTime;
 	}
 
 	/**
@@ -404,7 +424,7 @@ public class Clip implements Serializable
 	 * @return the place percent integer generated from the start and total times
 	 */
 	public double getPlacePercent() {
-		return PlacePercent;
+		return placePercent;
 	}
 	
 	/**
@@ -424,8 +444,8 @@ public class Clip implements Serializable
 		{
 			throw new IllegalArgumentException("startTime and totalTime must not be negative and totalTime must be greater than 0.");
 		}
-		StartTime = startTime;
-		TotalTime = totalTime;
+		this.startTime = startTime;
+		this.totalTime = totalTime;
 		setPlacePercent(startTime * 100.0 / totalTime);
 	}
 
@@ -438,7 +458,7 @@ public class Clip implements Serializable
 	 * @param placePercent
 	 */
 	private void setPlacePercent(double placePercent) {
-		PlacePercent = placePercent;
+		this.placePercent = placePercent;
 	}
 	
 	
@@ -509,4 +529,67 @@ public class Clip implements Serializable
 		}
 	}
 	
+	
+	/* SERIALIZABLE METHODS
+	   These are included because Media is not Serializable */
+	
+	private void writeObject(ObjectOutputStream oos)
+	throws IOException
+	{
+		// Get the byte array of the video for serialization into the clip
+		File vidSource;
+		try
+		{
+			URI vidSoUri = new URI(getVideo().getSource());
+			vidSource = new File(vidSoUri.getPath());
+		
+			String fileName = vidSource.getName();
+			int i = fileName.lastIndexOf('.');
+			if (i > 0)
+			{
+				origVideoExtension = fileName.substring(i+1);
+			}
+			else
+			{
+				origVideoExtension = null;
+			}
+			serializedVideoFile = new byte[(int) vidSource.length()];
+			FileInputStream fis = new FileInputStream(vidSource);
+			
+			fis.read(serializedVideoFile);
+		
+		} catch (URISyntaxException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		// default serialization
+		oos.defaultWriteObject();
+	}
+	
+	private void readObject(ObjectInputStream ois)
+	throws ClassNotFoundException, IOException
+	{
+		// default deserialization
+		ois.defaultReadObject();
+		
+		// save the video to a temp location and reset the media object
+		if(serializedVideoFile != null && serializedVideoFile.length > 0)
+		{
+			String videoPath = Constants.getTempLocation() + "GKCLIPTEMP";
+			int tempID = 0;
+			while(new File(videoPath + tempID).exists())
+			{
+				tempID++;
+			}
+			videoPath = videoPath + tempID + ((origVideoExtension != null) ? "." + origVideoExtension : "");
+			
+			FileOutputStream fileOut = new FileOutputStream(videoPath);
+			fileOut.write(serializedVideoFile);
+			fileOut.close();
+			
+			setVideo(videoPath);
+		}		
+	}
 }

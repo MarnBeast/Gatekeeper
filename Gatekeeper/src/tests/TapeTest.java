@@ -2,7 +2,12 @@ package tests;
 
 import static org.junit.Assert.*;
 
+import java.awt.List;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -100,14 +105,14 @@ public class TapeTest
 		
 		String clipPath = "src/tests/Clip01.mp4";
 		String clip2Path = "src/tests/Clip 02.mp4";
-		clipPath = new File(clipPath).toURI().toString();
-		clip2Path = new File(clip2Path).toURI().toString();
+		String clipURI = new File(clipPath).toURI().toString();
+		String clip2URI = new File(clip2Path).toURI().toString();
 		
 		Clip testClip = tape.addClip(clipPath);	
-		assertEquals(clipPath, testClip.getVideo().getSource());
+		assertEquals(clipURI, testClip.getVideo().getSource());
 		
 		Clip testClip2 = tape.addClip(clip2Path);
-		assertEquals(clip2Path, testClip2.getVideo().getSource());
+		assertEquals(clip2URI, testClip2.getVideo().getSource());
 		
 		Clip[] tapeClips = tape.getClips();
 		assertEquals(2.0, tapeClips.length, 0.0);
@@ -118,8 +123,8 @@ public class TapeTest
 		tapeClips = tape.getClips();
 		assertEquals(4.0, tapeClips.length, 0.0);
 		assertEquals(2.0, addedClips.length, 0.0);
-		assertEquals(clipPath, addedClips[0].getVideo().getSource());
-		assertEquals(clip2Path, addedClips[1].getVideo().getSource());
+		assertEquals(clipURI, addedClips[0].getVideo().getSource());
+		assertEquals(clip2URI, addedClips[1].getVideo().getSource());
 		assertSame(addedClips[0], tapeClips[2]);
 		assertSame(addedClips[1], tapeClips[3]);
 		
@@ -127,10 +132,10 @@ public class TapeTest
 		tapeClips = tape.getClips();
 		assertEquals(8.0, tapeClips.length, 0.0);
 		assertEquals(4.0, addedClips.length, 0.0);
-		assertEquals(clipPath, addedClips[0].getVideo().getSource());
-		assertEquals(clip2Path, addedClips[1].getVideo().getSource());
-		assertEquals(clipPath, addedClips[2].getVideo().getSource());
-		assertEquals(clip2Path, addedClips[3].getVideo().getSource());
+		assertEquals(clipURI, addedClips[0].getVideo().getSource());
+		assertEquals(clip2URI, addedClips[1].getVideo().getSource());
+		assertEquals(clipURI, addedClips[2].getVideo().getSource());
+		assertEquals(clip2URI, addedClips[3].getVideo().getSource());
 		
 		testClip = addedClips[0];
 		assertSame(testClip, tapeClips[4]);
@@ -155,8 +160,8 @@ public class TapeTest
 	{
 		String clipPath = "src/tests/Clip01.mp4";
 		String clip2Path = "src/tests/Clip 02.mp4";
-		clipPath = new File(clipPath).toURI().toString();
-		clip2Path = new File(clip2Path).toURI().toString();
+		//clipPath = new File(clipPath).toURI().toString();
+		//clip2Path = new File(clip2Path).toURI().toString();
 		
 		Tape tape = new Tape();
 		Clip[] addedClips = tape.addClips(new String[]{clipPath, clip2Path, clipPath, clip2Path});
@@ -230,6 +235,108 @@ public class TapeTest
 			if(type == types[3])
 			{
 				fail();
+			}
+		}
+	}
+	
+	@Test
+	public void serializationTest()
+	{
+		String clipPath = "src/tests/Clip01.mp4";
+		String clip2Path = "src/tests/Clip 02.mp4";
+		String tapeSavePath = "src/tests/saveTape" + Constants.TAPE_EXTENSION;
+		//clipPath = new File(clipPath).toURI().toString();
+		//clip2Path = new File(clip2Path).toURI().toString();
+		
+		Tape tapeOut = new Tape();
+		Clip[] addedClips = tapeOut.addClips(new String[]{clipPath, clip2Path, clipPath, clip2Path});
+		
+		String[] types = new String[]
+		{"onetype", "notherT", "T3JudgementDay", "Here's a Type", "Type!", "", "5", "test"};
+		
+//		ArrayList<String> sortedTypesList = new ArrayList(Arrays.asList(types));
+//		sortedTypesList.addAll(Arrays.asList(Constants.DEFAULT_TYPES));
+//		Collections.sort(sortedTypesList);
+//		String[] sortedTypes = sortedTypesList.toArray(new String[0]);
+		
+		addedClips[0].addType(types[0]);
+		addedClips[0].addType(types[1]);
+		addedClips[0].addType(types[2]);
+
+		addedClips[1].addType(types[0]);
+		addedClips[1].addType(types[1]);
+		addedClips[1].addType(types[3]);
+
+		addedClips[2].addType(types[0]);
+		addedClips[2].addType(types[2]);
+		addedClips[2].addType(types[6]);
+		
+		addedClips[3].addType(types[5]);
+		addedClips[3].addType(types[6]);
+		addedClips[3].addType(types[2]);
+		
+		addedClips[0].addChainedClip(addedClips[2]);
+		addedClips[1].addChainedClip(addedClips[3]);
+		
+		try
+		{
+			tapeOut.saveTape(tapeSavePath);
+		} catch (IOException e)
+		{
+			String msg = e.getMessage();
+			fail();
+		}
+		
+		Tape tapeIn = null;
+		FileInputStream fis;
+		try
+		{
+			fis = new FileInputStream(tapeSavePath);
+			ObjectInputStream ois = new ObjectInputStream(fis);
+			tapeIn = (Tape) ois.readObject();
+		} catch (IOException | ClassNotFoundException e)
+		{
+			String msg = e.getMessage();
+			fail();
+		}
+		
+		assertEquals(tapeOut.getName(), tapeIn.getName());
+		assertArrayEquals(tapeOut.getTypes(), tapeIn.getTypes());
+		
+		Settings setOut = tapeOut.getDefaultSettings();
+		Settings setIn = tapeIn.getDefaultSettings();
+		assertArrayEquals(setOut.getBiases().values().toArray(), setIn.getBiases().values().toArray());
+		assertArrayEquals(setOut.getBiases().keySet().toArray(), setIn.getBiases().keySet().toArray());
+
+		Clip[] clipsOut = tapeOut.getClips();
+		Clip[] clipsIn = tapeIn.getClips();
+		assertEquals(clipsOut.length, clipsIn.length);
+		
+		for (int i = 0; i<clipsOut.length; i++)
+		{
+			Clip clipOut = clipsOut[i];
+			Clip clipIn = clipsIn[i];
+			assertNotNull(clipIn);
+			assertEquals(clipOut.getStartTime(), clipIn.getStartTime(), 0.001);
+			assertEquals(clipOut.getTotalTime(), clipIn.getTotalTime(), 0.001);
+			assertEquals(clipOut.getPlacePercent(), clipIn.getPlacePercent(), 0.001);
+			
+			Clip[] chainedOut = new Clip[1];
+			clipOut.getChainedClips().toArray(chainedOut);
+			Clip[] chainedIn = new Clip[1];
+			clipIn.getChainedClips().toArray(chainedIn);
+			
+			assertEquals(chainedOut.length, chainedIn.length);
+			
+			java.util.List<Clip> clipsOutList = Arrays.asList(clipsOut);
+			java.util.List<Clip> clipsInList = Arrays.asList(clipsIn);
+			
+			for(int j=0; j<chainedOut.length; j++)
+			{
+				Clip chainClipOut = chainedOut[j];
+				Clip chainClipIn = chainedIn[j];
+				
+				assertEquals(clipsOutList.indexOf(chainClipOut), clipsInList.indexOf(chainClipIn));
 			}
 		}
 	}

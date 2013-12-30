@@ -4,6 +4,12 @@ import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.*;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -17,6 +23,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized.Parameters;
 
+import com.sun.javafx.binding.StringConstant;
+
 import tests.PartiallyParameterized.NonParameterized;
 
 
@@ -29,6 +37,8 @@ public class ClipTest
 	//Clip clip;
 	String fullClipPath;
 	String fullClip2Path;
+	String fullClipURI;
+	String fullClip2URI;
 	double testStartTime;
 	double testTotalTime;
 	double testPlacePercent;
@@ -57,8 +67,11 @@ public class ClipTest
 		String clipPath = "src/tests/Clip01.mp4";
 		String clip2Path = "src/tests/Clip 02.mp4";
 		testPlacePercent = testStartTime * 100.0 / testTotalTime;
-		fullClipPath = new File(clipPath).toURI().toString();
-		fullClip2Path = new File(clip2Path).toURI().toString();
+		fullClipPath = clipPath; // new File(clipPath).toURI().toString();
+		fullClip2Path = clip2Path; //new File(clip2Path).toURI().toString();
+
+		fullClipURI = new File(fullClipPath).toURI().toString();
+		fullClip2URI = new File(fullClip2Path).toURI().toString();
 		
 		new JFXPanel();	// prepare JavaFX toolkit and environment
 	}
@@ -100,7 +113,7 @@ public class ClipTest
 			
 			Media vid = clip.getVideo();
 			assertNotNull(vid);
-			assertEquals(vid.getSource(), fullClipPath);
+			assertEquals(vid.getSource(), fullClipURI);
 			
 			clip = new Clip(vid, testStartTime, testTotalTime);
 			assertEquals(testStartTime, clip.getStartTime(), 0);
@@ -154,19 +167,51 @@ public class ClipTest
 	
 	@Test
 	@NonParameterized
+	public void nullConstructorTest()
+	{
+		Clip clip = new Clip((Media) null);
+		assertNull(clip.getVideo());
+		assertEquals(0.0, clip.getStartTime(), 0.001);
+		assertEquals(1.0, clip.getTotalTime(), 0.001);
+		clip = new Clip("");
+		assertNull(clip.getVideo());
+		assertEquals(0.0, clip.getStartTime(), 0.001);
+		assertEquals(1.0, clip.getTotalTime(), 0.001);
+		clip = new Clip((String) null);
+		assertNull(clip.getVideo());
+		assertEquals(0.0, clip.getStartTime(), 0.001);
+		assertEquals(1.0, clip.getTotalTime(), 0.001);
+		
+		clip = new Clip((Media) null, 0.5, 2.1);
+		assertNull(clip.getVideo());
+		assertEquals(0.5, clip.getStartTime(), 0.001);
+		assertEquals(2.1, clip.getTotalTime(), 0.001);
+		clip = new Clip("", 0.5, 2.1);
+		assertNull(clip.getVideo());
+		assertEquals(0.5, clip.getStartTime(), 0.001);
+		assertEquals(2.1, clip.getTotalTime(), 0.001);
+		clip = new Clip((String) null, 0.5, 2.1);
+		assertNull(clip.getVideo());
+		assertEquals(0.5, clip.getStartTime(), 0.001);
+		assertEquals(2.1, clip.getTotalTime(), 0.001);
+	}
+	
+	@Test
+	@NonParameterized
 	public void videoTest()
 	{
+		
 		Clip clip = new Clip(fullClipPath, 0.0, 160.0);
 		Media ret = clip.getVideo();
 		assertNotNull(ret);
-		assertEquals(fullClipPath, ret.getSource()); 
+		assertEquals(fullClipURI, ret.getSource()); 
 		
 		clip.setVideo(fullClip2Path);
 		ret = clip.getVideo();
 		assertNotNull(ret);
-		assertEquals(fullClip2Path, ret.getSource());
+		assertEquals(fullClip2URI, ret.getSource());
 		
-		Media set = new Media(fullClipPath);
+		Media set = new Media(fullClipURI);
 		clip.setVideo(set);
 		ret = clip.getVideo();
 		assertSame(set, ret);
@@ -176,32 +221,38 @@ public class ClipTest
 		ret = clip.getVideo();
 		assertNull(ret);
 		
-		// Null String
-		boolean fail = true;
-		try {
-			clip.setVideo((String)null);
-		} catch (NullPointerException e) {
-			fail = false;
-		}
-		if(fail)
-		{
-			fail();
-		}
+		// Null String - THIS IS SUPPORTED NOW! It should set the video to null
+		clip.setVideo("");
+		assertNull(clip.getVideo());
 		
-		// Empty String
-		fail = true;
-		try {
-			clip.setVideo("");
-		} catch (IllegalArgumentException e) {
-			fail = false;
-		}
-		if(fail)
-		{
-			fail();
-		}
+//		boolean fail = true;
+//		try {
+//			clip.setVideo((String)null);
+//		} catch (NullPointerException e) {
+//			fail = false;
+//		}
+//		if(fail)
+//		{
+//			fail();
+//		}
+		
+		// Empty String - THIS IS SUPPORTED NOW! It should set the video to null
+		clip.setVideo("");
+		assertNull(clip.getVideo());
+		
+//		fail = true;
+//		try {
+//			clip.setVideo("");
+//		} catch (IllegalArgumentException e) {
+//			fail = false;
+//		}
+//		if(fail)
+//		{
+//			fail();
+//		}
 		
 		// Invalid file
-		fail = true;
+		boolean fail = true;
 		try {
 			clip.setVideo(fullClipPath + "2");
 		} catch (MediaException e) {
@@ -409,5 +460,48 @@ public class ClipTest
 		Clip clip2 = new Clip(fullClip2Path);
 		assertThat(clip2.getStartTime(), equalTo(0.0));
 		assertThat(clip2.getTotalTime(), not(equalTo(1.0)));
+	}
+	
+	@Test
+	@NonParameterized
+	public void serializeTest()
+	{
+		Clip clipOut = new Clip(fullClipPath, 15.0, 26.0);
+		FileOutputStream fileOut;
+		try
+		{
+			fileOut = new FileOutputStream("C:\\Users\\MarnBeast\\Desktop\\TEST.testclip");
+			ObjectOutputStream out = new ObjectOutputStream(fileOut);
+			out.writeObject(clipOut);
+			out.close();
+			fileOut.close();
+
+		} catch (FileNotFoundException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		Clip clipIn = null;
+		try
+		{
+			FileInputStream fileIn = new FileInputStream("C:\\Users\\MarnBeast\\Desktop\\TEST.testclip");
+			ObjectInputStream in = new ObjectInputStream(fileIn);
+
+			clipIn = (Clip) in.readObject();
+		} catch (ClassNotFoundException | IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		assertNotNull(clipIn);
+		assertEquals(clipOut.getStartTime(), clipIn.getStartTime(), 0.001);
+		assertEquals(clipOut.getTotalTime(), clipIn.getTotalTime(), 0.001);
+		assertEquals(clipOut.getPlacePercent(), clipIn.getPlacePercent(), 0.001);
 	}
 }

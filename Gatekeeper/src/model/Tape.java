@@ -110,8 +110,7 @@ public class Tape implements Serializable, ClipListener
 	
 	public Clip addClip(String videoClipPath)
 	{
-		Media media = new Media(videoClipPath);
-		Clip clip = new Clip(media);
+		Clip clip = new Clip(videoClipPath);
 		allClipsArrayList.add(clip);
 		return clip;
 	}

@@ -44,8 +44,8 @@ public class ClipTimeTest {
 		
 		String clipPath = "src/tests/Clip01.mp4";
 		String clip2Path = "src/tests/Clip 02.mp4";
-		clipPath = new File(clipPath).toURI().toString();
-		clip2Path = new File(clip2Path).toURI().toString();
+		//clipPath = new File(clipPath).toURI().toString();
+		//clip2Path = new File(clip2Path).toURI().toString();
 		testClip = new Clip(clipPath, 15.0, 160.0);
 		testClip2 = new Clip(clip2Path, 45.2, 160.0);
 	}
@@ -55,8 +55,8 @@ public class ClipTimeTest {
 	{
 		String clipPath = "src/tests/Clip01.mp4";
 		String clip2Path = "src/tests/Clip 02.mp4";
-		clipPath = new File(clipPath).toURI().toString();
-		clip2Path = new File(clip2Path).toURI().toString();
+		//clipPath = new File(clipPath).toURI().toString();
+		//clip2Path = new File(clip2Path).toURI().toString();
 	}
 	
 	@Test

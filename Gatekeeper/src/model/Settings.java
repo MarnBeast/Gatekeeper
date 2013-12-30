@@ -1,5 +1,6 @@
 package model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -12,7 +13,7 @@ import java.util.Iterator;
  * Used in the TimelineBuilder, as well as in the Tape class to specify default settings.
  * @author MarnBeast
  */
-public class Settings {
+public class Settings implements Serializable{
 	
 	private HashMap<Tape, EnumSet<TapeInclude>> TapeIncludes;
 	private HashMap<Integer, Double> Biases;
