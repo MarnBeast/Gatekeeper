@@ -18,6 +18,7 @@ import model.Clip;
 import model.Constants;
 import model.Settings;
 import model.Tape;
+import model.Settings.ClipBaseTypes;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -52,11 +53,11 @@ public class TapeTest
 		Settings testSettings = tape.getDefaultSettings();
 		assertNotNull(testSettings);
 		assertEquals(0, testSettings.getBiases().size());
-		assertEquals(0, testSettings.getLandmarks().size());
+		assertEquals(0, testSettings.getLandmarks().length);
 		assertEquals(0, testSettings.getTapeIncludes().size());
 		
-		assertNotNull(tape.getClips());
-		assertEquals(0, tape.getClips().length);
+		assertNotNull(tape.getClips(ClipBaseTypes.MISC));
+		assertEquals(0, tape.getClips(ClipBaseTypes.MISC).length);
 
 		
 		// Repeat test for the Name constructor
@@ -77,11 +78,11 @@ public class TapeTest
 		testSettings = tape.getDefaultSettings();
 		assertNotNull(testSettings);
 		assertEquals(0, testSettings.getBiases().size());
-		assertEquals(0, testSettings.getLandmarks().size());
+		assertEquals(0, testSettings.getLandmarks().length);
 		assertEquals(0, testSettings.getTapeIncludes().size());
 		
-		assertNotNull(tape.getClips());
-		assertEquals(0, tape.getClips().length);
+		assertNotNull(tape.getClips(ClipBaseTypes.MISC));
+		assertEquals(0, tape.getClips(ClipBaseTypes.MISC).length);
 	}
 	
 	@Test
@@ -108,19 +109,19 @@ public class TapeTest
 		String clipURI = new File(clipPath).toURI().toString();
 		String clip2URI = new File(clip2Path).toURI().toString();
 		
-		Clip testClip = tape.addClip(clipPath);	
+		Clip testClip = tape.addClip(clipPath, ClipBaseTypes.MISC);	
 		assertEquals(clipURI, testClip.getVideo().getSource());
 		
-		Clip testClip2 = tape.addClip(clip2Path);
+		Clip testClip2 = tape.addClip(clip2Path, ClipBaseTypes.MISC);
 		assertEquals(clip2URI, testClip2.getVideo().getSource());
 		
-		Clip[] tapeClips = tape.getClips();
+		Clip[] tapeClips = tape.getClips(ClipBaseTypes.MISC);
 		assertEquals(2.0, tapeClips.length, 0.0);
 		assertSame(testClip, tapeClips[0]);
 		assertSame(testClip2, tapeClips[1]);
 		
-		Clip[] addedClips = tape.addClips(new String[]{clipPath, clip2Path});
-		tapeClips = tape.getClips();
+		Clip[] addedClips = tape.addClips(new String[]{clipPath, clip2Path}, ClipBaseTypes.MISC);
+		tapeClips = tape.getClips(ClipBaseTypes.MISC);
 		assertEquals(4.0, tapeClips.length, 0.0);
 		assertEquals(2.0, addedClips.length, 0.0);
 		assertEquals(clipURI, addedClips[0].getVideo().getSource());
@@ -128,8 +129,8 @@ public class TapeTest
 		assertSame(addedClips[0], tapeClips[2]);
 		assertSame(addedClips[1], tapeClips[3]);
 		
-		addedClips = tape.addClips(new String[]{clipPath, clip2Path, clipPath, clip2Path}, true);
-		tapeClips = tape.getClips();
+		addedClips = tape.addClips(new String[]{clipPath, clip2Path, clipPath, clip2Path}, ClipBaseTypes.MISC, true);
+		tapeClips = tape.getClips(ClipBaseTypes.MISC);
 		assertEquals(8.0, tapeClips.length, 0.0);
 		assertEquals(4.0, addedClips.length, 0.0);
 		assertEquals(clipURI, addedClips[0].getVideo().getSource());
@@ -164,7 +165,7 @@ public class TapeTest
 		//clip2Path = new File(clip2Path).toURI().toString();
 		
 		Tape tape = new Tape();
-		Clip[] addedClips = tape.addClips(new String[]{clipPath, clip2Path, clipPath, clip2Path});
+		Clip[] addedClips = tape.addClips(new String[]{clipPath, clip2Path, clipPath, clip2Path}, ClipBaseTypes.MISC);
 		
 		String[] types = new String[]
 		{"onetype", "notherT", "T3JudgementDay", "Here's a Type", "Type!", "", "5", "test"};
@@ -202,7 +203,7 @@ public class TapeTest
 		assertEquals(types[1], tapeTypes[7]);
 		assertEquals(types[0], tapeTypes[8]);
 		
-		tape.removeClip(addedClips[1]);
+		tape.removeClip(addedClips[1], ClipBaseTypes.MISC);
 		tapeTypes = tape.getTypes();
 		boolean type0remains = false;
 		boolean type1remains = false;
@@ -222,9 +223,9 @@ public class TapeTest
 			}
 		}
 		assertTrue(type0remains && type1remains);
-		tape.removeClip(addedClips[1]);
+		tape.removeClip(addedClips[1], ClipBaseTypes.MISC);
 		
-		tape.addClip(addedClips[1]);
+		tape.addClip(addedClips[1], ClipBaseTypes.MISC);
 		tapeTypes = tape.getTypes();
 		assertEquals(types[3], tapeTypes[4]);
 		
@@ -249,7 +250,7 @@ public class TapeTest
 		//clip2Path = new File(clip2Path).toURI().toString();
 		
 		Tape tapeOut = new Tape();
-		Clip[] addedClips = tapeOut.addClips(new String[]{clipPath, clip2Path, clipPath, clip2Path});
+		Clip[] addedClips = tapeOut.addClips(new String[]{clipPath, clip2Path, clipPath, clip2Path}, ClipBaseTypes.MISC);
 		
 		String[] types = new String[]
 		{"onetype", "notherT", "T3JudgementDay", "Here's a Type", "Type!", "", "5", "test"};
@@ -308,8 +309,8 @@ public class TapeTest
 		assertArrayEquals(setOut.getBiases().values().toArray(), setIn.getBiases().values().toArray());
 		assertArrayEquals(setOut.getBiases().keySet().toArray(), setIn.getBiases().keySet().toArray());
 
-		Clip[] clipsOut = tapeOut.getClips();
-		Clip[] clipsIn = tapeIn.getClips();
+		Clip[] clipsOut = tapeOut.getClips(ClipBaseTypes.MISC);
+		Clip[] clipsIn = tapeIn.getClips(ClipBaseTypes.MISC);
 		assertEquals(clipsOut.length, clipsIn.length);
 		
 		for (int i = 0; i<clipsOut.length; i++)

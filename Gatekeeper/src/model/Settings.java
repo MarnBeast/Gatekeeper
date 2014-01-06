@@ -1,10 +1,10 @@
 package model;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.TreeSet;
 
 /**
  * Holds all of the user specified settings for generating a timeline.
@@ -15,9 +15,15 @@ import java.util.Iterator;
  */
 public class Settings implements Serializable{
 	
-	private HashMap<Tape, EnumSet<TapeInclude>> TapeIncludes;
-	private HashMap<Integer, Double> Biases;
-	private ArrayList<Landmark> Landmarks;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
+	private HashMap<Tape, EnumSet<ClipBaseTypes>> TapeIncludes;
+	private HashMap<String, Double> Biases;
+	private TreeSet<Landmark> Landmarks;
+	private double PositionWindow = Constants.DEFAULT_POSITION_WINDOW;
 	
 	/**
 	 * Holds all of the user specified settings for generating a timeline.
@@ -29,7 +35,11 @@ public class Settings implements Serializable{
 	{
 		TapeIncludes = new HashMap<>();
 		Biases = new HashMap<>();
-		Landmarks = new ArrayList<Landmark>();
+		Landmarks = new TreeSet<Landmark>();
+		
+		addBias(Constants.DEFAULT_TYPES[0], Constants.DEFAULT_CLIP_TYPE_BIAS);
+		// Add default "Clip" type. This is done to ensure that, if a clip has no types
+		// assigned to it, it at least has a default bias so it will be included in the clippool.
 	}
 
 	
@@ -43,8 +53,8 @@ public class Settings implements Serializable{
 	 * @return the tapeIncludes
 	 */
 	@SuppressWarnings("unchecked")
-	public HashMap<Tape, EnumSet<TapeInclude>> getTapeIncludes() {
-		return (HashMap<Tape, EnumSet<TapeInclude>>) TapeIncludes.clone();
+	public HashMap<Tape, EnumSet<ClipBaseTypes>> getTapeIncludes() {
+		return (HashMap<Tape, EnumSet<ClipBaseTypes>>) TapeIncludes.clone();
 	}
 	
 	/**
@@ -56,7 +66,7 @@ public class Settings implements Serializable{
 	 * @param includesBitmap
 	 * @return The previous include settings assigned to that tape..
 	 */
-	public EnumSet<TapeInclude> addTapeIncludes(Tape tape, EnumSet<TapeInclude> includes)
+	public EnumSet<ClipBaseTypes> addTapeIncludes(Tape tape, EnumSet<ClipBaseTypes> includes)
 	{
 		return TapeIncludes.put(tape, includes);
 	}
@@ -68,7 +78,7 @@ public class Settings implements Serializable{
 	 * whatever is currently mapped to that tape.
 	 * @param tapeIncludes HashMap mapping a number of Tapes to includes bitmaps.
 	 */
-	public void addTapeIncludes(HashMap<Tape, EnumSet<TapeInclude>> tapeIncludes)
+	public void addTapeIncludes(HashMap<Tape, EnumSet<ClipBaseTypes>> tapeIncludes)
 	{
 		TapeIncludes.putAll(tapeIncludes);
 	}
@@ -78,7 +88,7 @@ public class Settings implements Serializable{
 	 * @param tape
 	 * @return The EnumSet that was just removed from the settings.
 	 */
-	public EnumSet<TapeInclude> removeTapeIncludes(Tape tape)
+	public EnumSet<ClipBaseTypes> removeTapeIncludes(Tape tape)
 	{
 		return TapeIncludes.remove(tape);
 	}
@@ -89,7 +99,7 @@ public class Settings implements Serializable{
 	 * @return The includes settings EnumSet specifying what elements of the tape should be available
 	 * for inclusion when the timeline is generated.
 	 */
-	public EnumSet<TapeInclude> getTapeIncludes(Tape tape)
+	public EnumSet<ClipBaseTypes> getTapeIncludes(Tape tape)
 	{
 		return TapeIncludes.get(tape);
 	}
@@ -99,16 +109,26 @@ public class Settings implements Serializable{
 	 * @return HashMap of the tape include settings before being cleared, keyed by tape.
 	 */
 	@SuppressWarnings("unchecked")
-	public HashMap<Tape, EnumSet<Settings.TapeInclude>> clearTapeIncludes()
+	public HashMap<Tape, EnumSet<Settings.ClipBaseTypes>> clearTapeIncludes()
 	{
-		HashMap<Tape, EnumSet<Settings.TapeInclude>> retMap;
-		retMap = (HashMap<Tape, EnumSet<Settings.TapeInclude>>) TapeIncludes.clone();
+		HashMap<Tape, EnumSet<Settings.ClipBaseTypes>> retMap;
+		retMap = (HashMap<Tape, EnumSet<Settings.ClipBaseTypes>>) TapeIncludes.clone();
 		TapeIncludes.clear();
 		return retMap;
 	}
 
 	
 	// BIASES
+	
+	public void setPostionWindow(double posWindow)
+	{
+		PositionWindow = posWindow;
+	}
+	
+	public double getPositionWindow()
+	{
+		return PositionWindow;
+	}
 	
 	/**
 	 * Returns a HashMap of all bias percentages saved in the settings, keyed by typeID. This only
@@ -119,8 +139,8 @@ public class Settings implements Serializable{
 	 * @return HashMap<Integer, Double> of all bias percentages saved in the settings, keyed by typeID.
 	 */
 	@SuppressWarnings("unchecked")
-	public HashMap<Integer, Double> getBiases() {
-		return (HashMap<Integer, Double>) Biases.clone();
+	public HashMap<String, Double> getBiases() {
+		return (HashMap<String, Double>) Biases.clone();
 	}
 	
 	/**
@@ -145,7 +165,7 @@ public class Settings implements Serializable{
 	 * @return The previous percentage bias assigned to that type. If no assignment exists, 100.0 is returned.
 	 * @throws IllegalArgumentException If percentageBias is negative, IllegalArgumentException is thrown.
 	 */
-	public double addBias(int typeID, double percentageBias)
+	public double addBias(String typeID, double percentageBias)
 	{
 		if(percentageBias < 0)
 		{
@@ -157,7 +177,7 @@ public class Settings implements Serializable{
 		{
 			return 100.0;
 		}
-		else {
+		else { 
 			return retValDouble;
 		}
 	}
@@ -167,7 +187,7 @@ public class Settings implements Serializable{
 	 * @param biases A HashMap<Integer, Double> of the type biases to add to the settings, keyed by type ID.
 	 * @throws IllegalArgumentException if a bias value in the passed in HashMap is negative.
 	 */
-	public void addBiases(HashMap<Integer, Double> biases)
+	public void addBiases(HashMap<String, Double> biases)
 	{
 		Iterator<Double> percentageBiases = biases.values().iterator();
 		while(percentageBiases.hasNext())
@@ -186,8 +206,9 @@ public class Settings implements Serializable{
 	 * @param typeID The type of clip to remove bias.
 	 * @return The previous bias percentage assigned to the specified type ID.
 	 */
-	public double removeBias(int typeID)
+	public double removeBias(String typeID)
 	{
+		// Let's actually allow the user to specifically remove the "Clip" bias if they want to.
 		Double retValDouble = Biases.remove(typeID);
 		if(retValDouble == null)
 		{
@@ -203,7 +224,7 @@ public class Settings implements Serializable{
 	 * @param typeID The type for which a bias should be retrieved.
 	 * @return The bias assigned to the given type, or 100.0 if no bias is found.
 	 */
-	public double getBias(int typeID)
+	public double getBias(String typeID)
 	{
 		Double retValDouble = Biases.get(typeID);
 		if(retValDouble == null)
@@ -222,11 +243,12 @@ public class Settings implements Serializable{
 	 * @return The HashMap of bias percentages mapped to type IDs prior to being cleared.
 	 */
 	@SuppressWarnings("unchecked")
-	public HashMap<Integer, Double> clearBiases()
+	public HashMap<String, Double> clearBiases()
 	{
-		HashMap<Integer, Double> retMap;
-		retMap = (HashMap<Integer, Double>)Biases.clone();
+		HashMap<String, Double> retMap;
+		retMap = (HashMap<String, Double>)Biases.clone();
 		Biases.clear();
+		addBias(Constants.DEFAULT_TYPES[0], Constants.DEFAULT_CLIP_TYPE_BIAS);
 		return retMap;
 	}
 
@@ -238,8 +260,8 @@ public class Settings implements Serializable{
 	 * @return ArrayList of Landmarks.
 	 */
 	@SuppressWarnings("unchecked")
-	public ArrayList<Landmark> getLandmarks() {
-		return (ArrayList<Landmark>) Landmarks.clone();
+	public Landmark[] getLandmarks() {
+		return Landmarks.toArray(new Landmark[0]);
 	}
 	
 	/**
@@ -281,7 +303,7 @@ public class Settings implements Serializable{
 	 * @return True if the landmark was added successfully. False if a landmark
 	 * already exists with a landmark time equal to the time specified.
 	 */
-	public boolean addLandmark(int typeID, double time)
+	public boolean addLandmark(String type, double time)
 	{
 		Iterator<Landmark> landIter = Landmarks.iterator();
 		while(landIter.hasNext())
@@ -293,7 +315,7 @@ public class Settings implements Serializable{
 			}
 		}
 		
-		Landmark landmark = new Landmark(typeID, time);
+		Landmark landmark = new Landmark(type, time);
 		return Landmarks.add(landmark);
 	}
 	
@@ -306,15 +328,15 @@ public class Settings implements Serializable{
 	 * @throws NullPointerException if one of the landmarks in the passed in list
 	 * is null.
 	 */
-	public boolean addLandmarks(ArrayList<Landmark> landmarks) {
+	public boolean addLandmarks(TreeSet<Landmark> landmarks) {
 		Iterator<Landmark> landIter = landmarks.iterator();
 		while(landIter.hasNext())
 		{
 			Landmark nextLandmark = landIter.next();
-			if(nextLandmark == null)
-			{
-				throw new NullPointerException("Landmark must not be null");
-			}
+//			if(nextLandmark == null)   THIS IS IMPOSSIBLE WITH TREESETS. OBSOLETE AFTER MOVING AWAY FROM ARRAYLIST
+//			{
+//				throw new NullPointerException("Landmark must not be null");
+//			}
 			double time = nextLandmark.getTime();
 			
 			Iterator<Landmark> landIter2 = Landmarks.iterator();
@@ -346,12 +368,39 @@ public class Settings implements Serializable{
 	 * before being cleared.
 	 */
 	@SuppressWarnings("unchecked")
-	public ArrayList<Landmark> clearLandmarks()
+	public TreeSet<Landmark> clearLandmarks()
 	{
-		ArrayList<Landmark> retList;
-		retList = (ArrayList<Landmark>)Landmarks.clone();
+		TreeSet<Landmark> retList;
+		retList = (TreeSet<Landmark>)Landmarks.clone();
 		Landmarks.clear();
 		return retList;	
+	}
+	
+	public void setLandmarkClips(Tape[] tapes)
+	{
+		for (Tape tape : tapes)
+		{
+			setLandmarkClips(tape.getClips(ClipBaseTypes.MISC));
+		}
+	}
+	public void setLandmarkClips(Clip[] clips)
+	{
+		for (Clip clip : clips)
+		{
+			for (String typeID : clip.getTypes())
+			{
+				for (Landmark landmark : getLandmarks())
+				{
+					String landmarkType = landmark.getType();
+					if(typeID.equals(landmarkType))
+					{
+						landmark.addClip(clip);
+						break; // breaks out of the types loop,
+							   // but we'll keep looping through landmarks
+					}
+				}
+			}
+		}
 	}
 	
 	/**
@@ -361,7 +410,7 @@ public class Settings implements Serializable{
 	 * @author MarnBeast
 	 *
 	 */
-	public static enum TapeInclude
+	public static enum ClipBaseTypes
 	{
 		INTRO,
 		END,

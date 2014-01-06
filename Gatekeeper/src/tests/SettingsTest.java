@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.TreeSet;
 
 import model.Landmark;
 import model.Settings;
@@ -26,7 +27,7 @@ public class SettingsTest {
 		assertEquals(0, settings.getBiases().size());
 		
 		assertNotNull(settings.getLandmarks());
-		assertEquals(0, settings.getLandmarks().size());
+		assertEquals(0, settings.getLandmarks().length);
 	}
 	
 	
@@ -36,13 +37,13 @@ public class SettingsTest {
 		int numIndexes = 6;
 		Settings settings = new Settings();
 		Tape[] tapes = new Tape[]{new Tape(), new Tape(), new Tape(), new Tape(), new Tape(), new Tape()};
-		ArrayList<EnumSet<Settings.TapeInclude>> includeValues = new ArrayList<EnumSet<Settings.TapeInclude>>();
-		includeValues.add(EnumSet.of(Settings.TapeInclude.INTRO));
-		includeValues.add(EnumSet.of(Settings.TapeInclude.INTRO, Settings.TapeInclude.END, Settings.TapeInclude.FILLER));
-		includeValues.add(EnumSet.of(Settings.TapeInclude.INTRO, Settings.TapeInclude.END, Settings.TapeInclude.FILLER, Settings.TapeInclude.MISC));
-		includeValues.add(EnumSet.of(Settings.TapeInclude.END, Settings.TapeInclude.FILLER, Settings.TapeInclude.MISC));
-		includeValues.add(EnumSet.of(Settings.TapeInclude.INTRO, Settings.TapeInclude.END));
-		includeValues.add(EnumSet.of(Settings.TapeInclude.FILLER, Settings.TapeInclude.MISC));
+		ArrayList<EnumSet<Settings.ClipBaseTypes>> includeValues = new ArrayList<EnumSet<Settings.ClipBaseTypes>>();
+		includeValues.add(EnumSet.of(Settings.ClipBaseTypes.INTRO));
+		includeValues.add(EnumSet.of(Settings.ClipBaseTypes.INTRO, Settings.ClipBaseTypes.END, Settings.ClipBaseTypes.FILLER));
+		includeValues.add(EnumSet.of(Settings.ClipBaseTypes.INTRO, Settings.ClipBaseTypes.END, Settings.ClipBaseTypes.FILLER, Settings.ClipBaseTypes.MISC));
+		includeValues.add(EnumSet.of(Settings.ClipBaseTypes.END, Settings.ClipBaseTypes.FILLER, Settings.ClipBaseTypes.MISC));
+		includeValues.add(EnumSet.of(Settings.ClipBaseTypes.INTRO, Settings.ClipBaseTypes.END));
+		includeValues.add(EnumSet.of(Settings.ClipBaseTypes.FILLER, Settings.ClipBaseTypes.MISC));
 
 		Tape tapeNotInTypeIDs = new Tape();
 
@@ -60,7 +61,7 @@ public class SettingsTest {
 		assertNull(settings.getTapeIncludes(tapeNotInTypeIDs));	// getTapeIncludes should return null if key not found
 		
 		// setTapeIncludes
-		HashMap<Tape, EnumSet<Settings.TapeInclude>> testHashMap = new HashMap<>();
+		HashMap<Tape, EnumSet<Settings.ClipBaseTypes>> testHashMap = new HashMap<>();
 		for (int i = 0; i<numIndexes; i++)
 		{
 			testHashMap.put(tapes[i], includeValues.get((numIndexes-1)-i));
@@ -103,9 +104,9 @@ public class SettingsTest {
 	{
 		int numIndexes = 6;
 		Settings settings = new Settings();
-		int[] typeIDs = new int[]{0,2,4,-2,Integer.MAX_VALUE, Integer.MIN_VALUE};
+		String[] typeIDs = new String[]{"type1", "type2", "type3", "type4", "type5", ""};
 		double[] percentageBiases = new double[]{0.0, 2.4, 94.2, 13.2, Double.MAX_VALUE, 0.01};
-		int typeIDNotInTypeIDs = 15;
+		String typeIDNotInTypeIDs = "notype";
 
 		
 		for (int i = 0; i<numIndexes; i++)
@@ -130,7 +131,7 @@ public class SettingsTest {
 		assertTrue(exceptionThrown);
 		
 		// addBiases
-		HashMap<Integer, Double> testHashMap = new HashMap<>();
+		HashMap<String, Double> testHashMap = new HashMap<>();
 		for (int i = 0; i<numIndexes; i++)
 		{
 			testHashMap.put(typeIDs[i], percentageBiases[(numIndexes-1)-i]);
@@ -172,12 +173,12 @@ public class SettingsTest {
 	public void landmarksTest()
 	{
 		Settings settings = new Settings();
-		assertEquals(0, settings.getLandmarks().size());
-		Landmark landmark1 = new Landmark(0, 152.5);
-		Landmark landmark2 = new Landmark(1, 242.3);
-		Landmark landmark3 = new Landmark(2, 365.2);
-		Landmark landmark4 = new Landmark(1, 15.2);
-		Landmark landmark5 = new Landmark(3, 306.4);
+		assertEquals(0, settings.getLandmarks().length);
+		Landmark landmark1 = new Landmark("Intro", 152.5);
+		Landmark landmark2 = new Landmark("Ending", 242.3);
+		Landmark landmark3 = new Landmark("Filler", 365.2);
+		Landmark landmark4 = new Landmark("Ending", 15.2);
+		Landmark landmark5 = new Landmark("Misc", 306.4);
 		Landmark[] landmarks = new Landmark[] {landmark1,landmark2,landmark3,landmark4,landmark5};
 		boolean ret;
 		
@@ -185,26 +186,44 @@ public class SettingsTest {
 		{
 			ret = settings.addLandmark(landmarks[i]);
 			assertTrue(ret);
-			assertEquals(i+1, settings.getLandmarks().size());
-			assertTrue(settings.getLandmarks().contains(landmarks[i]));
+			assertEquals(i+1, settings.getLandmarks().length);
+			boolean found = false;
+			for (Landmark landmark : settings.getLandmarks())
+			{
+				if(landmark == landmarks[i])
+				{
+					found = true;
+					break;
+				}
+			}
+			assertTrue(found);
 		}
 		for(int i = landmarks.length - 1; i >= 0; i--)
 		{
 			ret = settings.removeLandmark(landmarks[i]);
 			assertTrue(ret);
-			assertEquals(i, settings.getLandmarks().size());
-			assertFalse(settings.getLandmarks().contains(landmarks[i]));
+			assertEquals(i, settings.getLandmarks().length);
+			boolean found = false;
+			for (Landmark landmark : settings.getLandmarks())
+			{
+				if(landmark == landmarks[i])
+				{
+					found = true;
+					break;
+				}
+			}
+			assertFalse(found);
 		}
 		for(int i = 0; i < landmarks.length; i++)
 		{
 			ret = settings.addLandmark(landmarks[i]);
-			assertEquals(i+1, settings.getLandmarks().size());
+			assertEquals(i+1, settings.getLandmarks().length);
 		}
 
-		ArrayList<Landmark> retTypeList;
+		TreeSet<Landmark> retTypeList;
 		retTypeList = settings.clearLandmarks();
 		assertNotNull(retTypeList);
-		assertEquals(0, settings.getLandmarks().size());
+		assertEquals(0, settings.getLandmarks().length);
 		assertEquals(landmarks.length, retTypeList.size());
 		for(int i = 0; i < landmarks.length; i++)
 		{
@@ -227,31 +246,32 @@ public class SettingsTest {
 			fail();
 		}
 		
-		// addLandmarks null exception
-		fail = true;
+		// addLandmarks null exception1		THIS IS UMPOSSIBLE WITH TREESETS. OBSOLETE AFTER MOVING AWAY FROM ARRAYLIST
+//		fail = true;
+//		settings.clearLandmarks();
+//		
+//		TreeSet<Landmark> nullLandmarkList = new TreeSet<Landmark>();
+//		nullLandmarkList.addAll(retTypeList);
+//		nullLandmarkList.add(null);
+//		
+//		try {
+//			settings.addLandmarks(nullLandmarkList);
+//		} catch (NullPointerException e) {
+//			fail = false;
+//		}
+//		if(fail)
+//		{
+//			fail();
+//		}
+		
 		settings.clearLandmarks();
-		
-		ArrayList<Landmark> nullLandmarkList = new ArrayList<Landmark>();
-		nullLandmarkList.addAll(retTypeList);
-		nullLandmarkList.add(null);
-		
-		try {
-			settings.addLandmarks(nullLandmarkList);
-		} catch (NullPointerException e) {
-			fail = false;
-		}
-		if(fail)
-		{
-			fail();
-		}
-		
 		
 		assertTrue(settings.addLandmark(landmark1));
 		assertFalse(settings.addLandmark(landmark1));
-		assertTrue(settings.addLandmark(landmark2.getTypeID(), landmark2.getTime()));
-		assertFalse(settings.addLandmark(landmark1.getTypeID(), landmark2.getTime()));
-		assertTrue(settings.addLandmark(landmark1.getTypeID(), landmark3.getTime()));
+		assertTrue(settings.addLandmark(landmark2.getType(), landmark2.getTime()));
+		assertFalse(settings.addLandmark(landmark1.getType(), landmark2.getTime()));
+		assertTrue(settings.addLandmark(landmark1.getType(), landmark3.getTime()));
 		
-		assertEquals(3, settings.getLandmarks().size());
+		assertEquals(3, settings.getLandmarks().length);
 	}
 }

@@ -1,11 +1,20 @@
 package gui;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.Map.Entry;
 
+import model.Clip;
 import model.Constants;
+import model.Landmark;
+import model.Settings;
 import model.Tape;
+import model.Timeline;
+import model.Settings.ClipBaseTypes;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -60,30 +69,32 @@ public class MainWindow extends Application{
 		//System.out.println(MainWindow.class.getResource("GKStyle.css"));
 		primaryStage.show();
 		
-		player.play();
-		player2.play();
-		player3.play();
-		player4.play();
+			//		q
 		
 		Thread thread = new Thread(new Runnable()
 		{
 			@Override
 			public void run()
 			{
-				try
-				{
-					Thread.sleep(5000);
-				} catch (InterruptedException e)
-				{
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				player.setWidth(500);
-				player2.setWidth(500);
-				player3.setWidth(500);
-				player4.setWidth(500);
+//				try
+//				{
+//					Thread.sleep(5000);
+//				} catch (InterruptedException e)
+//				{
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+//				player.setWidth(500);
+//				player2.setWidth(500);
+//				player3.setWidth(500);
+//				player4.setWidth(500);
 				
-				SerializeTestTape("C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Main Tape\\");
+				//SerializeTestTape("C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Main Tape\\");
+				TimelineTest(new String[]{
+						"C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Main Tape\\TestTape.gktape",
+						"C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Booster 1\\TestTape.gktape"});
+				//		"C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Main Tape\\Main Tape.gktape",
+				//		"C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Booster 1\\Booster 1.gktape"});
 			}
 		});
 		
@@ -94,24 +105,123 @@ public class MainWindow extends Application{
 	public void SerializeTestTape(String basePath)
 	{
 		File folder = new File(basePath);
-		File[] listOfFiles = folder.listFiles();
-		String[] filePaths = new String[listOfFiles.length];
-		int fileIndex = 0;
-		for (File file : listOfFiles)
+		FileFilter filter = new FileFilter()
 		{
-			filePaths[fileIndex] = file.toURI().toString();
-			fileIndex++;
+			@Override
+			public boolean accept(File pathname)
+			{
+				return pathname.getPath().matches(Constants.SUPPORTED_MEDIA_EXTENSIONS);
+			}
+		};
+		File[] listOfFiles = folder.listFiles(filter);
+		String[] filePaths = new String[listOfFiles.length];
+		
+		for (int i = 0; i < listOfFiles.length; i++)
+		{
+			filePaths[i]=listOfFiles[i].getPath(); 
+		}
+		Tape tape = new Tape();
+		tape.addClips(filePaths, ClipBaseTypes.MISC, true);
+		
+		Clip[] clips = tape.getClips(ClipBaseTypes.MISC);
+		
+		Clip clip = clips[0];										// Intro
+		tape.removeClip(clip, ClipBaseTypes.MISC);
+		tape.addClip(clip, ClipBaseTypes.INTRO);
+		clip.addType(Constants.DEFAULT_TYPES[1]);
+		
+		clip = clips[clips.length-1];								// Ending
+		tape.removeClip(clip, ClipBaseTypes.MISC);
+		tape.addClip(clip, ClipBaseTypes.END);
+		clip.addType(Constants.DEFAULT_TYPES[2]);
+		
+		for(int i = 1; i < clips.length-1; i++)
+		{
+			if(i%2 > 0)
+			{
+				clip = clips[i];									// Filler
+				tape.removeClip(clip, ClipBaseTypes.MISC);
+				tape.addClip(clip, ClipBaseTypes.FILLER);
+				clip.addType(Constants.DEFAULT_TYPES[3]);
+			}
 		}
 		
-		Tape tape = new Tape();
-		tape.addClips(filePaths, true);
+		clips[16].addType("Soul Rangers");
+		
+		Settings settings = new Settings();
+		settings.addLandmark("Soul Rangers", 600);
+		
 		try
 		{
 			tape.saveTape(basePath + "TestTape" + Constants.TAPE_EXTENSION);
+			System.out.println("DONE SAVING");
 		} catch (IOException e)
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			System.out.println("ERROR: " + e.getMessage());
+		}
+	}
+	
+	public void TimelineTest(String[] tapePaths)
+	{
+		ArrayList<Tape> tapes = new ArrayList<>();
+		for (String tapePath : tapePaths)
+		{
+			try
+			{
+				Tape tape = Tape.loadTape(tapePath);
+				tapes.add(tape);
+			} catch (ClassNotFoundException e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				System.out.println("ERROR: " + e.getMessage());
+			}
+		}
+
+		Settings gameSettings = new Settings();
+		gameSettings.addLandmark("Soul Rangers", 600);
+		gameSettings.addBias("Soul Rangers", 0.0);	// bias it out so that it's only added from the landmark
+		for (Tape tape : tapes)
+		{
+			tape.loadClipsMedia();
+			
+			gameSettings.addTapeIncludes(tape, EnumSet.of(
+					ClipBaseTypes.INTRO,
+					ClipBaseTypes.FILLER,
+					ClipBaseTypes.MISC,
+					ClipBaseTypes.END));
+		}
+		
+		Timeline timeline = Timeline.createTimeline(
+				tapes.toArray(new Tape[0]),
+				gameSettings,
+				Constants.DEFAULT_TOTAL_GAME_TIME,
+				Constants.DEFAULT_TRANSITION_TIME);
+		
+		for (Entry<Double, Clip> clipTime: timeline.getSortedClipTimes())
+		{
+			Double time = clipTime.getKey();
+			Clip clip = clipTime.getValue();
+			String vidPath = clip.getVideo().getSource();
+			
+			String typesString = "";
+			for (String type : clip.getTypes())
+			{
+				if(!type.equals(Constants.DEFAULT_TYPES[0]))
+				{
+					typesString += type + " ";
+				}
+			}
+			
+			//String[] splitPath = vidPath.split("/");
+			//vidPath = splitPath[splitPath.length-2] + "/" + splitPath[splitPath.length-1];
+			System.out.println(time + "\t" + typesString + "\t" + vidPath);
 		}
 	}
 

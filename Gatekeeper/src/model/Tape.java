@@ -16,6 +16,7 @@ import java.util.HashMap;
 
 import model.Clip.ClipListener;
 import javafx.scene.media.Media;
+import javafx.util.Duration;
 
 
 public class Tape implements Serializable, ClipListener
@@ -28,7 +29,11 @@ public class Tape implements Serializable, ClipListener
 	private String name;
 	
 	private HashMap<String, Integer> typeClipCount;
-	private ArrayList<Clip> allClipsArrayList;
+	
+	private ArrayList<Clip> miscClips;
+	private ArrayList<Clip> introClips;
+	private ArrayList<Clip> endingClips;
+	private ArrayList<Clip> fillerClips;
 	
 	private Settings defaultSettings;
 
@@ -46,7 +51,10 @@ public class Tape implements Serializable, ClipListener
 			this.typeClipCount.put(defaultType, 0);
 		}
 				
-		this.allClipsArrayList = new ArrayList<Clip>();
+		this.miscClips = new ArrayList<Clip>();
+		this.introClips = new ArrayList<Clip>();
+		this.endingClips = new ArrayList<Clip>();
+		this.fillerClips = new ArrayList<Clip>();
 		
 		this.defaultSettings = new Settings();
 		this.name = name;
@@ -108,16 +116,27 @@ public class Tape implements Serializable, ClipListener
 	
 	// Add Clip Methods
 	
-	public Clip addClip(String videoClipPath)
+	public void addClip(Clip clip, Settings.ClipBaseTypes clipBaseType)
 	{
-		Clip clip = new Clip(videoClipPath);
-		allClipsArrayList.add(clip);
-		return clip;
-	}
-	
-	public void addClip(Clip clip)
-	{
-		allClipsArrayList.add(clip);
+		switch (clipBaseType)
+		{
+		case INTRO:
+			introClips.add(clip);
+			break;
+
+		case END:
+			endingClips.add(clip);
+			break;
+
+		case FILLER:
+			fillerClips.add(clip);
+			break;
+		
+		default:
+			miscClips.add(clip);
+			break;
+
+		}
 		for (String type : clip.getTypes())
 		{
 			typeAdded(type);
@@ -125,20 +144,27 @@ public class Tape implements Serializable, ClipListener
 		clip.addClipListener(this);
 	}
 	
-	public void addClips(Clip[] clips)
+	public Clip addClip(String videoClipPath, Settings.ClipBaseTypes clipBaseType)
+	{
+		Clip clip = new Clip(videoClipPath);
+		addClip(clip, clipBaseType);
+		return clip;
+	}
+	
+	public void addClips(Clip[] clips, Settings.ClipBaseTypes clipBaseType)
 	{
 		for (Clip clip : clips)
 		{
-			addClip(clip);
+			addClip(clip, clipBaseType);
 		}
 	}
 
-	public Clip[] addClips(String[] videoClipPaths)
+	public Clip[] addClips(String[] videoClipPaths, Settings.ClipBaseTypes clipBaseType)
 	{
-		return addClips(videoClipPaths, false);
+		return addClips(videoClipPaths, clipBaseType, false);
 	}
 	
-	public Clip[] addClips(String[] videoClipPaths, boolean calculateRelativeClipTimes)
+	public Clip[] addClips(String[] videoClipPaths, Settings.ClipBaseTypes clipBaseType, boolean calculateRelativeClipTimes)
 	{
 		Clip[] clips = new Clip[videoClipPaths.length];
 		double startTime = 0.0;
@@ -149,16 +175,15 @@ public class Tape implements Serializable, ClipListener
 		{
 			if(calculateRelativeClipTimes)
 			{
-				clips[i] = new Clip(videoClipPaths[i]);
-				clips[i].addClipListener(this);
-				allClipsArrayList.add(clips[i]);
+				clips[i] = addClip(videoClipPaths[i], clipBaseType);
 				
-				totalTime += clips[i].getVideo().getDuration().toSeconds();
+				Media vid = clips[i].getVideo();
+				Duration duration = vid.getDuration();
+				double sec = duration.toSeconds();
+				totalTime += sec;//clips[i].getVideo().getDuration().toSeconds();
 			}
 			else {
-				clips[i] = new Clip(videoClipPaths[i]); 
-				clips[i].addClipListener(this);
-				allClipsArrayList.add(clips[i]);
+				clips[i] = addClip(videoClipPaths[i], clipBaseType);
 			}
 
 		}
@@ -181,9 +206,23 @@ public class Tape implements Serializable, ClipListener
 	 * Returns all clips stored in the tape.
 	 * @return Array of all clips stored in this tape.
 	 */
-	public Clip[] getClips()
+	public Clip[] getClips(Settings.ClipBaseTypes clipBaseType)
 	{
-		return allClipsArrayList.toArray(new Clip[0]);		
+		switch (clipBaseType)
+		{
+		case INTRO:
+			Collections.sort(introClips);
+			return introClips.toArray(new Clip[0]);
+		case END:
+			Collections.sort(endingClips);
+			return endingClips.toArray(new Clip[0]);
+		case FILLER:
+			Collections.sort(fillerClips);
+			return fillerClips.toArray(new Clip[0]);
+		default:
+			Collections.sort(miscClips);
+			return miscClips.toArray(new Clip[0]);
+		}	
 	}
 
 
@@ -191,31 +230,36 @@ public class Tape implements Serializable, ClipListener
 	 * Removes the clip from the tape and clears its types.
 	 * @param clip The clip to remove.
 	 */
-	public void removeClip(Clip clip)
+	public boolean removeClip(Clip clip, Settings.ClipBaseTypes clipBaseType)
 	{
 		for (String type : clip.getTypes())
 		{
 			typeRemoved(type);
 		}
 		clip.removeClipListener(this);
-		allClipsArrayList.remove(clip);
+		switch (clipBaseType)
+		{
+		case INTRO:
+			return introClips.remove(clip);
+		case END:
+			return endingClips.remove(clip);
+		case FILLER:
+			return fillerClips.remove(clip);
+		default:
+			return miscClips.remove(clip);
+		}
 	}
 	
 	/**
 	 * Removes the clips from the tape and clears their types.
 	 * @param clips The clips to remove.
 	 */
-	public void removeClips(Collection<Clip> clips)
+	public void removeClips(Collection<Clip> clips, Settings.ClipBaseTypes clipBaseType)
 	{
 		for(Clip clip : clips)
 		{
-			for (String type : clip.getTypes())
-			{
-				typeRemoved(type);
-			}
-			clip.removeClipListener(this);
+			removeClip(clip, clipBaseType);
 		}
-		allClipsArrayList.removeAll(clips);
 	}
 	
 	/**
@@ -223,8 +267,46 @@ public class Tape implements Serializable, ClipListener
 	 */
 	public void clearClips()
 	{
-		allClipsArrayList.clear();
+		introClips.clear();
+		endingClips.clear();
+		fillerClips.clear();
+		miscClips.clear();
 		typeClipCount.clear();
+		for (String defaultType : Constants.DEFAULT_TYPES)
+		{
+			this.typeClipCount.put(defaultType, 0);
+		}
+	}
+	
+	public void clearClips(Settings.ClipBaseTypes clipBaseType)
+	{
+		switch (clipBaseType)
+		{
+		case INTRO:
+			for (Clip clip : introClips)
+			{
+				removeClip(clip, clipBaseType);
+			}
+			break;
+		case END:
+			for (Clip clip : endingClips)
+			{
+				removeClip(clip, clipBaseType);
+			}
+			break;
+		case FILLER:
+			for (Clip clip : fillerClips)
+			{
+				removeClip(clip, clipBaseType);
+			}
+			break;
+		default:
+			for (Clip clip : miscClips)
+			{
+				removeClip(clip, clipBaseType);
+			}
+			break;
+		}
 	}
 
 	
@@ -285,6 +367,26 @@ public class Tape implements Serializable, ClipListener
 		fileIn.close();
 		return tape;
 	}
+	
+	public void loadClipsMedia()
+	{
+		for (Clip clip : introClips)
+		{
+			clip.loadMediaMetaData();
+		}
+		for (Clip clip : miscClips)
+		{
+			clip.loadMediaMetaData();
+		}
+		for (Clip clip : fillerClips)
+		{
+			clip.loadMediaMetaData();
+		}
+		for (Clip clip : endingClips)
+		{
+			clip.loadMediaMetaData();
+		}
+	}
 
 
 	@Override
@@ -299,12 +401,17 @@ public class Tape implements Serializable, ClipListener
 		int typeCount = typeClipCount.containsKey(typeString) ? typeClipCount.get(typeString) : 0;
 		if(typeCount <= 1)
 		{
+			// TODO Maybe I should remove this default type check. I mean, a tape has to have
+			// a beginning and end, but should we pretend that it does just if none of the clips
+			// are labeled as a default type? I'm thinking no, but I'll revisit this later since
+			// it's been a while.
 			boolean isDefaultType = false;
 			for (String defaultType : Constants.DEFAULT_TYPES)
 			{
 				if(typeString.equals(defaultType))
 				{
 					isDefaultType = true;
+					typeClipCount.put(typeString, 0);
 					break;
 				}
 			}

@@ -30,7 +30,7 @@ import java.net.URISyntaxException;
  * @author Martin Dillon
  *
  */
-public class Clip implements Serializable
+public class Clip implements Serializable, Comparable<Clip>
 {
 	private static final long serialVersionUID = 1L;
 	private static final int LOAD_MEDIA_TIMEOUT = 5000;
@@ -76,6 +76,7 @@ public class Clip implements Serializable
 	{
 		setVideo(videoClip);
 		types = new ArrayList<String>();
+		types.add(Constants.DEFAULT_TYPES[0]);
 		chains = new ArrayList<Clip>();
 		this.setPlacePercent(startTime, totalTime);
 	}
@@ -106,6 +107,7 @@ public class Clip implements Serializable
 			setVideo((Media)null); 
 		}
 		types = new ArrayList<String>();
+		types.add(Constants.DEFAULT_TYPES[0]);
 		chains = new ArrayList<Clip>();
 		this.setPlacePercent(startTime, totalTime);
 	}
@@ -361,12 +363,19 @@ public class Clip implements Serializable
 	 * @return
 	 */
 	public boolean removeType(String type) {
-		boolean ret = types.remove(type);
-		if(ret)
+		if(type != Constants.DEFAULT_TYPES[0])	// All clips have default type "CLIP"
 		{
-			fireTypeRemovedEvent(type);
+			boolean ret = types.remove(type);
+			if(ret)
+			{
+				fireTypeRemovedEvent(type);
+			}
+			return ret;
 		}
-		return ret;
+		else 
+		{
+			return false;
+		}
 	}
 	
 	/**
@@ -384,6 +393,7 @@ public class Clip implements Serializable
 		{
 			fireTypeRemovedEvent(type);
 		}
+		addType(Constants.DEFAULT_TYPES[0]);
 		return retList;
 	}
 	
@@ -406,6 +416,14 @@ public class Clip implements Serializable
 	 */
 	public double getStartTime() {
 		return this.startTime;
+	}
+	
+	public double getLength(){
+		if(!mediaLoaded)
+		{
+			throw new IllegalStateException("The clip has not been loaded with the media. Please load the clip and try again. See method 'loadMediaMetaData' for details.");
+		}
+		return videoClip.getDuration().toSeconds();
 	}
 
 	/**
@@ -579,7 +597,7 @@ public class Clip implements Serializable
 		{
 			String videoPath = Constants.getTempLocation() + "GKCLIPTEMP";
 			int tempID = 0;
-			while(new File(videoPath + tempID).exists())
+			while(new File(videoPath + tempID + ((origVideoExtension != null) ? "." + origVideoExtension : "")).exists())
 			{
 				tempID++;
 			}
@@ -591,5 +609,26 @@ public class Clip implements Serializable
 			
 			setVideo(videoPath);
 		}		
+	}
+
+	/**
+	 * Clip is comparable/sortable by default over the placePercent variable.
+	 */
+	@Override
+	public int compareTo(Clip o)
+	{
+		double diff = placePercent - o.placePercent;
+		if(diff > 0)
+		{
+			return 1;
+		}
+		else if(diff < 0)
+		{
+			return -1;
+		}
+		else
+		{
+			return 0;
+		}
 	}
 }

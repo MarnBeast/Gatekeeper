@@ -1,9 +1,12 @@
 package model;
 
-public class Landmark {
+import java.util.ArrayList;
 
-	private int TypeID;
+public class Landmark implements Comparable<Landmark> {
+
+	private String Type;
 	private double Time;
+	private ArrayList<Clip> clips;
 	
 	/**
 	 * Maps a TypeID to a time in seconds.
@@ -11,28 +14,29 @@ public class Landmark {
 	 * 
 	 * Landmarks are used to specify that a clip with the given type ID MUST be played
 	 * at the given time in the timeline.
-	 * @param TypeID TypeID to be assigned a time.
+	 * @param type Type to be assigned a time.
 	 * @param time The time that the TypeID should occur in seconds.
 	 */
-	public Landmark(int typeID, double time)
+	public Landmark(String type, double time)
 	{
-		TypeID = typeID;
+		Type = type;
 		Time = time;
+		clips = new ArrayList<>();
 	}
 
 	
 	/**
-	 * @return the TypeID
+	 * @return the Type
 	 */
-	public int getTypeID() {
-		return TypeID;
+	public String getType() {
+		return Type;
 	}
 
 	/**
-	 * @param TypeID the type ID to set
+	 * @param type The type to set
 	 */
-	public void setTypeID(int typeID) {
-		TypeID = typeID;
+	public void setType(String type) {
+		Type = type;
 	}
 
 	/**
@@ -47,5 +51,46 @@ public class Landmark {
 	 */
 	public void setTime(double time) {
 		Time = time;
+	}
+	
+	public void addClip(Clip clip)
+	{
+		clips.add(clip);
+	}
+	
+	public void removeClip(Clip clip)
+	{
+		clips.clear();
+	}
+	
+	public Clip[] getClips()
+	{
+		return clips.toArray(new Clip[0]);
+	}
+	
+	public Clip[] clearClips()
+	{
+		Clip[] ret = getClips();
+		clips.clear();
+		return ret;
+	}
+
+
+	@Override
+	public int compareTo(Landmark o)
+	{
+		double diff = Time - o.Time;
+		if(diff > 0)
+		{
+			return 1;
+		}
+		else if(diff < 0)
+		{
+			return -1;
+		}
+		else
+		{
+			return 0;
+		}
 	}
 }
