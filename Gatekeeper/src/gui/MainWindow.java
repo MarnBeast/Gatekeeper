@@ -90,6 +90,8 @@ public class MainWindow extends Application{
 //				player4.setWidth(500);
 				
 				//SerializeTestTape("C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Main Tape\\");
+				//SerializeTestTape("C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Booster 1\\");
+				
 				TimelineTest(new String[]{
 						"C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Main Tape\\TestTape.gktape",
 						"C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Booster 1\\TestTape.gktape"});
@@ -147,9 +149,19 @@ public class MainWindow extends Application{
 		}
 		
 		clips[16].addType("Soul Rangers");
+		clips[22].addType("Soul Rangers Release");
+		clips[10].addType("Black Hole Release");
+		clips[56].addType("Black Hole Release");
+		clips[81].addType("Black Hole Release");
+		
+//		clips[18].addType("Soul Rangers");
+//		clips[20].addType("Soul Rangers Release");
+//		clips[16].addType("Black Hole Release");
+//		clips[36].addType("Black Hole Release");
 		
 		Settings settings = new Settings();
 		settings.addLandmark("Soul Rangers", 600);
+		settings.addLandmark("Soul Rangers Release", 800);
 		
 		try
 		{

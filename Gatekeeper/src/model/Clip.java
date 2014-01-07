@@ -607,6 +607,7 @@ public class Clip implements Serializable, Comparable<Clip>
 			fileOut.write(serializedVideoFile);
 			fileOut.close();
 			
+			serializedVideoFile = new byte[0];
 			setVideo(videoPath);
 		}		
 	}

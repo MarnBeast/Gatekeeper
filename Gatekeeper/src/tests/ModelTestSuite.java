@@ -11,8 +11,6 @@ import org.junit.runners.Suite.SuiteClasses;
 	ClipTimeTest.class,
 	LandmarkTest.class,
 	SettingsTest.class,
-	IDListTest.class,
-	IDListComparableTest.class,
 	TapeTest.class
 })
 public class ModelTestSuite {
