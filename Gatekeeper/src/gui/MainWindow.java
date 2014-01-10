@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.Map.Entry;
 
 import model.Clip;
@@ -17,10 +19,21 @@ import model.Timeline;
 import model.Settings.ClipBaseTypes;
 
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.concurrent.Task;
+import javafx.concurrent.WorkerStateEvent;
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -29,6 +42,9 @@ import javafx.stage.Stage;
 
 public class MainWindow extends Application{
 
+
+	
+	private boolean paused = false;
 	
 	public static void main(String[] args) {
 		launch(args);
@@ -36,6 +52,210 @@ public class MainWindow extends Application{
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
+		
+		TimelinePlayerTest(primaryStage);
+		
+		//VideoPlayerTest(primaryStage);
+		
+		//SerializeTestTape("C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Main Tape\\");
+		//SerializeTestTape("C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Booster 1\\");
+		
+		//TimelineTest(new String[]{
+		//		"C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Main Tape\\TestTape.gktape",
+		//		"C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Booster 1\\TestTape.gktape"});
+		//		"C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Main Tape\\Main Tape.gktape",
+		//		"C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Booster 1\\Booster 1.gktape"});
+	}
+	
+	public void TimelinePlayerTest(final Stage primaryStage)
+	{
+		// Initialize Window
+		final Group root = new Group();
+		final Scene scene = new Scene(root, 600, 400);
+		
+		primaryStage.setScene(scene);
+		scene.getStylesheets().add(MainWindow.class.getResource("GKStyle.css").toExternalForm());
+		//System.out.println(MainWindow.class.getResource("GKStyle.css"));
+		primaryStage.show();
+		
+		// Throw on a label
+		Label messageLabel = new Label("Building Timeline");
+		Label progressLabel = new Label("0");
+		VBox vBox = new VBox();
+		vBox.getChildren().addAll(messageLabel, progressLabel);
+		root.getChildren().add(vBox);
+		
+		// Built Timeline and run Timeline Player
+		Task<Timeline> timelineTask = new Task<Timeline>(){
+			@Override
+			protected Timeline call() throws Exception
+			{
+				String[] tapePaths = new String[]{
+						"C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Main Tape\\TestTape.gktape",
+						"C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Booster 1\\TestTape.gktape"};
+				
+				ArrayList<Tape> tapes = new ArrayList<>();
+				// Load Tapes - 50%
+				double progress = 0.0;
+				for (String tapePath : tapePaths)
+				{
+					try
+					{
+						updateMessage("Loading Tape '" + (new File(tapePath)).getName()+ "'");
+						updateProgress(progress, 100.0);
+						progress += 50.0/(double)tapePaths.length;
+						Tape tape = Tape.loadTape(tapePath);
+						tapes.add(tape);
+					} catch (ClassNotFoundException e)
+					{
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IOException e)
+					{
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+						System.out.println("ERROR: " + e.getMessage());
+					}
+				}
+
+				Settings gameSettings = new Settings();
+				gameSettings.addLandmark("Soul Rangers", 600);
+				gameSettings.addBias("Soul Rangers", 0.0);	// bias it out so that it's only added from the landmark
+				for (Tape tape : tapes)
+				{
+					tape.loadClipsMedia();
+					
+					gameSettings.addTapeIncludes(tape, EnumSet.of(
+							ClipBaseTypes.INTRO,
+							ClipBaseTypes.FILLER,
+							ClipBaseTypes.MISC,
+							ClipBaseTypes.END));
+				}
+				
+				// Build Timeline - 50%
+				updateMessage("Building Timeline");
+				updateProgress(50.0, 100.0);
+				TimelineBuilder tBuilder = new TimelineBuilder();
+				
+				TimelineBuilder.ProgressObserver pObserver = new TimelineBuilder.ProgressObserver()
+				{
+					@Override
+					public void progressUpdate(double iterations, double totalIterations)
+					{
+						updateProgress(iterations, totalIterations);
+					}
+				};
+
+				tBuilder.addTBProgressObserver(pObserver);
+				
+				Timeline timeline = tBuilder.createTimeline(tapes.toArray(new Tape[0]), gameSettings,
+						Constants.DEFAULT_TOTAL_GAME_TIME,
+						Constants.DEFAULT_TRANSITION_TIME);
+				
+//				Timeline timeline = Timeline.createTimeline(
+//						tapes.toArray(new Tape[0]),
+//						gameSettings,
+//						Constants.DEFAULT_TOTAL_GAME_TIME,
+//						Constants.DEFAULT_TRANSITION_TIME);
+				
+
+				updateMessage("Timeline Created!");
+				
+				return timeline;
+			}
+		};
+		
+		messageLabel.textProperty().bind(timelineTask.messageProperty());
+		progressLabel.textProperty().bind(timelineTask.progressProperty().multiply(100.0).asString());
+		
+		timelineTask.setOnSucceeded(new EventHandler<WorkerStateEvent>(){
+			@Override
+			public void handle(WorkerStateEvent event)
+			{
+				Timeline timeline = ((Task<Timeline>)event.getSource()).getValue();
+				
+				VBox vBox = new VBox();
+				final TimelinePlayer player = new TimelinePlayer(timeline);
+				Slider slider = new Slider();
+				
+				vBox.getChildren().add(player);
+				vBox.getChildren().add(slider);
+				root.getChildren().clear();
+				root.getChildren().add(vBox);
+				
+				scene.setOnKeyPressed(new EventHandler<KeyEvent>() {
+			        @Override
+			        public void handle(KeyEvent t) {
+			        	if(t.getCode().isWhitespaceKey())
+			        	{
+			        		controlPlayPause(player);
+			        		System.out.println("WHITESPACE");
+			        	}
+			        }
+			    });
+				
+				player.setOnMouseClicked(new EventHandler<MouseEvent>()
+				{
+					@Override
+					public void handle(MouseEvent t) {
+						if(t.isPrimaryButtonDown())
+						{
+							controlPlayPause(player);
+						}
+					}
+				});
+				
+				player.play();
+				player.setOnReady(new Runnable()
+				{
+					
+					@Override
+					public void run()
+					{
+						primaryStage.setWidth(player.getWidth());
+						primaryStage.setHeight(player.getHeight());
+						
+						ChangeListener<Object> updateSizeListener = new ChangeListener<Object>()
+						{
+							@Override
+							public void changed(ObservableValue<?> observable, Object oldValue,
+									Object newValue)
+							{
+								player.setWidth(primaryStage.getWidth());
+								player.setHeight(primaryStage.getHeight());
+							}
+						};
+						primaryStage.widthProperty().addListener(updateSizeListener);
+						primaryStage.heightProperty().addListener(updateSizeListener);
+						
+					}
+				});
+				
+				
+			}
+
+		});
+		
+		new Thread(timelineTask).start();
+		
+		
+	}
+	
+	private void controlPlayPause(TimelinePlayer player)
+	{
+    	if(!paused)
+    	{
+    		player.pause();
+    		paused = true;
+    	}
+    	else {
+			player.play();
+			paused = false;
+		}
+	}
+	
+	public void VideoPlayerTest(Stage primaryStage)
+	{
 		Group root = new Group();
 		
 		String projectRootDirectory = getHostServices().getDocumentBase();
@@ -76,27 +296,20 @@ public class MainWindow extends Application{
 			@Override
 			public void run()
 			{
-//				try
-//				{
-//					Thread.sleep(5000);
-//				} catch (InterruptedException e)
-//				{
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
-//				player.setWidth(500);
-//				player2.setWidth(500);
-//				player3.setWidth(500);
-//				player4.setWidth(500);
+				try
+				{
+					Thread.sleep(2000);
+				} catch (InterruptedException e)
+				{
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				player.setWidth(500);
+				player2.setWidth(500);
+				player3.setWidth(500);
+				player4.setWidth(500);
 				
-				//SerializeTestTape("C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Main Tape\\");
-				//SerializeTestTape("C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Booster 1\\");
-				
-				TimelineTest(new String[]{
-						"C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Main Tape\\TestTape.gktape",
-						"C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Booster 1\\TestTape.gktape"});
-				//		"C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Main Tape\\Main Tape.gktape",
-				//		"C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Booster 1\\Booster 1.gktape"});
+				player.play();
 			}
 		});
 		
@@ -175,7 +388,7 @@ public class MainWindow extends Application{
 		}
 	}
 	
-	public void TimelineTest(String[] tapePaths)
+	public Timeline TimelineTest(String[] tapePaths)
 	{
 		ArrayList<Tape> tapes = new ArrayList<>();
 		for (String tapePath : tapePaths)
@@ -216,25 +429,26 @@ public class MainWindow extends Application{
 				Constants.DEFAULT_TOTAL_GAME_TIME,
 				Constants.DEFAULT_TRANSITION_TIME);
 		
-		for (Entry<Double, Clip> clipTime: timeline.getSortedClipTimes())
-		{
-			Double time = clipTime.getKey();
-			Clip clip = clipTime.getValue();
-			String vidPath = clip.getVideo().getSource();
-			
-			String typesString = "";
-			for (String type : clip.getTypes())
-			{
-				if(!type.equals(Constants.DEFAULT_TYPES[0]))
-				{
-					typesString += type + " ";
-				}
-			}
-			
-			//String[] splitPath = vidPath.split("/");
-			//vidPath = splitPath[splitPath.length-2] + "/" + splitPath[splitPath.length-1];
-			System.out.println(time + "\t" + typesString + "\t" + vidPath);
-		}
+		return timeline;
+//		for (Entry<Double, Clip> clipTime: timeline)
+//		{
+//			Double time = clipTime.getKey();
+//			Clip clip = clipTime.getValue();
+//			String vidPath = clip.getVideo().getSource();
+//			
+//			String typesString = "";
+//			for (String type : clip.getTypes())
+//			{
+//				if(!type.equals(Constants.DEFAULT_TYPES[0]))
+//				{
+//					typesString += type + " ";
+//				}
+//			}
+//			
+//			//String[] splitPath = vidPath.split("/");
+//			//vidPath = splitPath[splitPath.length-2] + "/" + splitPath[splitPath.length-1];
+//			System.out.println(time + "\t" + typesString + "\t" + vidPath);
+//		}
 	}
 
 }

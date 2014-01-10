@@ -1,7 +1,9 @@
 package model;
 
+import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Random;
@@ -12,7 +14,7 @@ import java.util.TreeMap;
 import model.Settings.ClipBaseTypes;
 
 
-public class Timeline 
+public class Timeline
 {
 	private double transitionTime;
 	private double totalGameTime;
@@ -58,6 +60,11 @@ public class Timeline
 		clipTimes.put(time, clip);
 	}
 	
+	public Clip getClip(double time)
+	{
+		return clipTimes.get(time);
+	}
+	
 	public Clip removeClip(double time)
 	{
 		return clipTimes.remove(time);
@@ -69,9 +76,9 @@ public class Timeline
 	}
 	
 	
-	public Set<Entry<Double, Clip>> getSortedClipTimes()
+	public Set<Double> getClipTimes()
 	{
-		return clipTimes.entrySet();
+		return clipTimes.keySet();
 	}
 	
 	
@@ -441,6 +448,7 @@ public class Timeline
 		}
 		return retClips.toArray(new Clip[0]);
 	}
+
 }
 
 

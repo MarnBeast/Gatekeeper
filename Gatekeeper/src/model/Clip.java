@@ -43,6 +43,7 @@ public class Clip implements Serializable, Comparable<Clip>
 	private transient Media videoClip = null;
 	private byte[] serializedVideoFile = null;	// this is used to store the video file when serializing the clip.
 	private String origVideoExtension = "";
+	private boolean sourceIsTemporary = false;
 
 	
 	private boolean mediaLoaded = false;
@@ -182,6 +183,10 @@ public class Clip implements Serializable, Comparable<Clip>
 	 */
 	public void setVideo(Media videoClip) {
 		mediaLoaded = false;
+		if(sourceIsTemporary)
+		{
+			destroySource();
+		}
 		this.videoClip = videoClip;
 	}
 	
@@ -609,8 +614,47 @@ public class Clip implements Serializable, Comparable<Clip>
 			
 			serializedVideoFile = new byte[0];
 			setVideo(videoPath);
+			sourceIsTemporary = true;
 		}		
 	}
+	
+	private void destroySource()
+	{
+		if(videoClip != null)
+		{
+			File tempFile = null;
+			String vidSource = videoClip.getSource();
+			try
+			{
+				tempFile = new File(new URI(vidSource).getPath());
+			} catch (URISyntaxException e)
+			{
+				tempFile = new File(vidSource);
+			}
+			
+			if(tempFile != null && tempFile.exists())
+			{
+				tempFile.delete();
+			}
+		}
+		
+		videoClip = null;
+	}
+	
+	public void close()
+	{
+		if(sourceIsTemporary)
+		{
+			destroySource();
+		}
+	}
+	
+	@Override
+	public void finalize()
+	{
+		close();
+	}
+	
 
 	/**
 	 * Clip is comparable/sortable by default over the placePercent variable.

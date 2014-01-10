@@ -15,8 +15,8 @@ public class VideoPlayer extends Region
 	private MediaPlayer mplayer;
 	private MediaView mview;
 
-	private int width = -1;
-	private int height = -1;
+	private double width = -1.0;
+	private double height = -1.0;
 	
 	public VideoPlayer()
 	{
@@ -91,7 +91,7 @@ public class VideoPlayer extends Region
 	 * aspect ratio of the played media, or the original width of the media if height is
 	 * also -1.
 	 */
-	public void setWidth(int width)
+	public void setWidth(double width)
 	{
 		this.width = width;
 		this.mview.setFitWidth(width);
@@ -104,7 +104,7 @@ public class VideoPlayer extends Region
 	 * aspect ratio of the played media, or the original height of the media if width is
 	 * also -1.
 	 */
-	public void setHeight(int height)
+	public void setHeight(double height)
 	{
 		this.height = height;
 		this.mview.setFitHeight(height);
@@ -126,4 +126,13 @@ public class VideoPlayer extends Region
 		mplayer.seek(seekTime);
 	}
 
+	public void setOnReady(Runnable arg0)
+	{
+		mplayer.setOnReady(arg0);
+	}
+	
+	public Duration getCurrentTime()
+	{
+		return mplayer.getCurrentTime();
+	}
 }
