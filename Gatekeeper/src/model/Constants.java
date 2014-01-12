@@ -28,6 +28,6 @@ public class Constants {
 		}
 	}
 	
-	public static final double DEFAULT_TRANSITION_TIME = 5.0;
+	public static final double DEFAULT_TRANSITION_TIME = 2.0;
 	public static final double DEFAULT_TOTAL_GAME_TIME = 3600.0;
 }

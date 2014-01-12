@@ -1,15 +1,15 @@
 package model;
 
-import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Random;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+
+import javax.management.openmbean.OpenDataException;
 
 import model.Settings.ClipBaseTypes;
 
@@ -21,22 +21,22 @@ public class Timeline
 	private SortedMap<Double, Clip> clipTimes;
 	
 	
-	public Timeline(Double totalRunTime, double transitionTime)
+	public Timeline(double transitionTime)
 	{
 		this.transitionTime = transitionTime;
 		clipTimes = new TreeMap<Double, Clip>();
 	}
 	
-	public Timeline(double totalRunTime)
+	public Timeline()
 	{
-		this(totalRunTime, Constants.DEFAULT_TRANSITION_TIME);
+		this(Constants.DEFAULT_TRANSITION_TIME);
 	}
 	
 	
-	public void setTransitionTime(double transitionTime)
-	{
-		this.transitionTime = transitionTime;
-	}
+//	public void setTransitionTime(double transitionTime)
+//	{
+//		this.transitionTime = transitionTime;
+//	}
 	
 	public double getTransitionTime()
 	{
@@ -44,14 +44,24 @@ public class Timeline
 	}
 	
 	
-	public void setTotalGameTime(double totalGameTime)
-	{
-		this.totalGameTime = totalGameTime;
-	}
+//	public void setTotalGameTime(double totalGameTime)
+//	{
+//		this.totalGameTime = totalGameTime;
+//	}
 	
 	public double getTotalGameTime()
 	{
-		return totalGameTime;
+		return clipTimes.lastKey() + clipTimes.get(clipTimes.lastKey()).getLength();
+	}
+
+	/**
+	 * In some cases, the video may start before the game. For example, if an intro is provided the video start time
+	 * will be negative. If no intro is provided and the video starts with the game, the start time will be 0.0.
+	 * @return
+	 */
+	public double getVideoStartTime()
+	{
+		return clipTimes.firstKey();
 	}
 	
 	
@@ -140,7 +150,7 @@ public class Timeline
 		checkCreateTimelineParams(tapes, settings, totalGameTime, transitionTime);
 		
 		/* Start creating the timeline! */
-		Timeline timeline = new Timeline(totalGameTime, transitionTime);
+		Timeline timeline = new Timeline(transitionTime);
 		Tape clipPool = createClipPool(tapes, settings);
 		
 		Clip[] intros = clipPool.getClips(ClipBaseTypes.INTRO);

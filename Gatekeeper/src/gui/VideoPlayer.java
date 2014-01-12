@@ -1,5 +1,7 @@
 package gui;
 
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.layout.Region;
@@ -134,5 +136,15 @@ public class VideoPlayer extends Region
 	public Duration getCurrentTime()
 	{
 		return mplayer.getCurrentTime();
+	}
+	
+	public ReadOnlyObjectProperty<Duration> currentTimeProperty()
+	{
+		return mplayer.currentTimeProperty();
+	}
+	
+	public DoubleProperty volumeProperty()
+	{
+		return mplayer.volumeProperty();
 	}
 }

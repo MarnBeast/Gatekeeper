@@ -3,18 +3,21 @@ package gui;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.TimerTask;
-import java.util.Map.Entry;
 import java.util.Timer;
+
+import org.omg.CORBA.PUBLIC_MEMBER;
 
 import model.Clip;
 import model.Timeline;
+import javafx.animation.Animation;
 import javafx.animation.FadeTransition;
+import javafx.animation.Transition;
+import javafx.animation.TransitionBuilder;
 import javafx.application.Platform;
-import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.event.EventHandler;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
 import javafx.util.Duration;
 
@@ -34,6 +37,9 @@ public class TimelinePlayer extends Region
 	private double pausedTime = 0.0;
 	private boolean paused = true;
 	
+	private SimpleObjectProperty<Duration> currentGameTime = new SimpleObjectProperty<Duration>();
+	private CurrentTimeChangeListener currentTimeChangeListener = new CurrentTimeChangeListener();
+	
 	Timer timer;
 	TimerTask timerTask;
 	
@@ -41,7 +47,6 @@ public class TimelinePlayer extends Region
 	{
 		this.timeline = timeline;
 		this.timesIterator = timeline.getClipTimes().iterator();
-		Double[] array = timeline.getClipTimes().toArray(new Double[0]);
 		init();
 	}
 	
@@ -54,6 +59,7 @@ public class TimelinePlayer extends Region
 			if(clip != null)
 			{
 				foregroundVideoPlayer = new VideoPlayer(clip.getVideo());
+				foregroundVideoPlayer.currentTimeProperty().addListener(currentTimeChangeListener);
 				getChildren().add(foregroundVideoPlayer);
 			}
 			if(timesIterator.hasNext())
@@ -68,14 +74,13 @@ public class TimelinePlayer extends Region
 					public void changed(ObservableValue<?> observable, Object oldValue,
 							Object newValue)
 					{
-						updateSize();
+						//updateSize();
 					}
 				};
 				
 		this.widthProperty().addListener(updateSizeListener);
 		this.heightProperty().addListener(updateSizeListener);
 	}
-	
 	
 	private class LoadNextClipTask extends TimerTask
 	{
@@ -93,9 +98,12 @@ public class TimelinePlayer extends Region
 					
 					Clip clip = timeline.getClip(nextTime);
 					backgroundVideoPlayer = foregroundVideoPlayer;
+					backgroundVideoPlayer.currentTimeProperty().removeListener(currentTimeChangeListener);
 					foregroundVideoPlayer = new VideoPlayer(clip.getVideo());
+					foregroundVideoPlayer.currentTimeProperty().addListener(currentTimeChangeListener);
 					setWidth(width);
 					setHeight(height);
+					
 					
 					Duration transitionDuration = Duration.seconds(timeline.getTransitionTime());
 					FadeTransition fade = new FadeTransition(
@@ -103,6 +111,19 @@ public class TimelinePlayer extends Region
 					fade.setFromValue(0.0);
 					fade.setToValue(100.0);
 					fade.play();
+					
+					VolumeTransition backVolumeTrans = new VolumeTransition(
+							transitionDuration.divide(2), transitionDuration.divide(2), backgroundVideoPlayer);
+					backVolumeTrans.setFromValue(backgroundVideoPlayer.volumeProperty().get());
+					backVolumeTrans.setToValue(0.0);
+					
+					VolumeTransition foreVolumeTrans = new VolumeTransition(
+							transitionDuration.divide(2), foregroundVideoPlayer);
+					foreVolumeTrans.setFromValue(0.0);
+					foreVolumeTrans.setToValue(backgroundVideoPlayer.volumeProperty().get());
+
+					backVolumeTrans.play();
+					foreVolumeTrans.play();
 					
 					getChildren().add(foregroundVideoPlayer);
 					foregroundVideoPlayer.play();
@@ -123,39 +144,6 @@ public class TimelinePlayer extends Region
 		}
 	}
 	
-	
-	
-	private void updateSize()
-	{
-		if(width != -1 || height != -1)
-		{
-			double w = this.getWidth();
-			double h = this.getHeight();
-			
-			// only do work on this if we have loaded the gui elements 
-			// and have a valid w and h
-			if(w > 1.0 && h > 1.0)
-			{
-				double scaleX = (width != -1) ? ((double) width)/w : 
-					 ((double) height)/h;
-				double scaleY = (height != -1) ? ((double) height)/h :
-					((double) width)/w ;
-
-				double transX = (w - (w * scaleX)) / 2;
-				double transY = (h - (h * scaleY)) / 2;
-	
-				//this.setTranslateX(-transX);
-				//this.setTranslateY(-transY);
-				this.setScaleX(scaleX);
-				this.setScaleY(scaleY);
-			}
-		}
-		else
-		{
-			setScaleX(1);
-			setScaleY(1);
-		}
-	}
 	
 	/**
 	 * Sets the width of the video player.
@@ -187,14 +175,18 @@ public class TimelinePlayer extends Region
 	
 	public void play()
 	{
-		if(foregroundVideoPlayer!= null && !paused)
+		if(foregroundVideoPlayer!= null && paused)
 		{
 			foregroundVideoPlayer.play();
 			timerTask = new LoadNextClipTask();
 			
 			long delay = (long)(1000.0 * (nextTime - currentTime - pausedTime));
-			timer = new Timer();
-			timer.schedule(timerTask, delay);
+			if(delay > 0)
+			{
+				timer = new Timer();
+				timer.schedule(timerTask, delay);
+			}
+			
 			pausedTime = 0.0;
 			paused = false;
 		}
@@ -210,6 +202,7 @@ public class TimelinePlayer extends Region
 	
 	public void seek(Duration seekTime)
 	{
+		// Pause first to stop the clip timer
 		boolean origPaused = paused;
 		double seekTimeD = seekTime.toSeconds();
 		if(!paused)
@@ -221,19 +214,49 @@ public class TimelinePlayer extends Region
 		double clipTime = (double) clipTimes.toArray()[0];
 		for (Double time : clipTimes)
 		{
-			if(seekTimeD > time)
+			if(seekTimeD < time)
 			{
 				break;
 			}
 			clipTime = time;
 		}
 		
+		// Get sought clip
 		Clip clip = timeline.getClip(clipTime);
+		
+		getChildren().remove(foregroundVideoPlayer);
+		foregroundVideoPlayer.currentTimeProperty().removeListener(currentTimeChangeListener);
 		foregroundVideoPlayer = new VideoPlayer(clip.getVideo());
+		foregroundVideoPlayer.currentTimeProperty().addListener(currentTimeChangeListener);
+		setWidth(width);
+		setHeight(height);
+		
+		getChildren().add(foregroundVideoPlayer);
+		
 		pausedTime = seekTimeD - clipTime;
 		Duration newSeekTime = Duration.seconds(pausedTime);
 		foregroundVideoPlayer.seek(newSeekTime);
 		
+		// Set iterator to sought clip position
+		this.timesIterator = timeline.getClipTimes().iterator();
+		Double iterClipTime = timesIterator.next();
+		while(iterClipTime != clipTime && timesIterator.hasNext())
+		{
+			iterClipTime = timesIterator.next();
+		}
+		
+		// Set new current and next times
+		currentTime = clipTime;
+		if(timesIterator.hasNext())
+		{
+			nextTime = timesIterator.next();
+		}
+		else 
+		{
+			nextTime = currentTime;
+		}
+		
+		// Unpause if we weren't paused to start
 		if(!origPaused)
 		{
 			play();
@@ -244,4 +267,71 @@ public class TimelinePlayer extends Region
 	{
 		foregroundVideoPlayer.setOnReady(arg0);
 	}
+	
+	public boolean isPaused()
+	{
+		return paused;
+	}
+	
+	
+	
+	public ReadOnlyObjectProperty<Duration> currentGameTimeProperty()
+	{
+		return currentGameTime;
+	}
+	
+	private class CurrentTimeChangeListener implements ChangeListener<Duration>
+	{
+		@Override
+		public void changed(ObservableValue<? extends Duration> observed,
+				Duration oldTime, Duration newTime)
+		{
+			currentGameTime.set(Duration.seconds(currentTime + newTime.toSeconds()));
+		}
+	}
+	
+	
+	private class VolumeTransition extends Transition
+	{
+		VideoPlayer player;
+		double fromVal = 1.0;
+		double toVal = 0.0;
+		
+		double startAtFrac = 0.0;
+		
+		public VolumeTransition(Duration transitionDuration, Duration delayDuration, VideoPlayer player)
+		{
+			setCycleDuration(transitionDuration.add(delayDuration));
+			setCycleCount(1);
+			
+			startAtFrac = delayDuration.toMillis() / transitionDuration.add(delayDuration).toMillis();
+			
+			this.player = player;
+		}
+		public VolumeTransition(Duration transitionDuration, VideoPlayer player)
+		{
+			this(transitionDuration, Duration.millis(0), player);
+		}
+		
+		@Override
+		protected void interpolate(double frac)
+		{
+			if(frac > startAtFrac)
+			{     
+				double volume = fromVal + (toVal - fromVal) * (frac-startAtFrac) / (1.0 - startAtFrac);
+				player.volumeProperty().set(volume);
+			}
+		}
+		
+		public void setFromValue(double fromVal)
+		{
+			this.fromVal = fromVal;
+		}
+		
+		public void setToValue(double toVal)
+		{
+			this.toVal = toVal;
+		}
+	}
+	
 }

@@ -39,6 +39,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 public class MainWindow extends Application{
 
@@ -172,11 +173,11 @@ public class MainWindow extends Application{
 			@Override
 			public void handle(WorkerStateEvent event)
 			{
-				Timeline timeline = ((Task<Timeline>)event.getSource()).getValue();
+				final Timeline timeline = ((Task<Timeline>)event.getSource()).getValue();
 				
-				VBox vBox = new VBox();
+				final VBox vBox = new VBox();
 				final TimelinePlayer player = new TimelinePlayer(timeline);
-				Slider slider = new Slider();
+				final Slider slider = new Slider();
 				
 				vBox.getChildren().add(player);
 				vBox.getChildren().add(slider);
@@ -223,15 +224,43 @@ public class MainWindow extends Application{
 							{
 								player.setWidth(primaryStage.getWidth());
 								player.setHeight(primaryStage.getHeight());
+								vBox.setMinWidth(primaryStage.getWidth());
+								vBox.setMaxWidth(primaryStage.getWidth());
 							}
 						};
 						primaryStage.widthProperty().addListener(updateSizeListener);
 						primaryStage.heightProperty().addListener(updateSizeListener);
 						
+						slider.setMin(timeline.getVideoStartTime());
+						slider.setValue(timeline.getVideoStartTime());
+						slider.setMax(timeline.getTotalGameTime());
 					}
 				});
 				
+				player.currentGameTimeProperty().addListener(new ChangeListener<Duration>()
+				{
+					@Override
+					public void changed(
+							ObservableValue<? extends Duration> observableValue,
+							Duration duration, Duration current)
+					{
+						slider.setValue(current.toSeconds());
+					}
+				});
 				
+				slider.setOnMouseClicked(new EventHandler<MouseEvent>()
+				{
+					@Override
+					public void handle(MouseEvent mouseEvent)
+					{
+						double val = slider.getValue();
+						boolean isPaused = player.isPaused();
+						
+						if(!isPaused) player.pause();
+						player.seek(Duration.seconds(val));
+						if(!isPaused) player.play();
+					}
+				});
 			}
 
 		});
@@ -288,8 +317,8 @@ public class MainWindow extends Application{
 		scene.getStylesheets().add(MainWindow.class.getResource("GKStyle.css").toExternalForm());
 		//System.out.println(MainWindow.class.getResource("GKStyle.css"));
 		primaryStage.show();
-		
-			//		q
+
+
 		
 		Thread thread = new Thread(new Runnable()
 		{
