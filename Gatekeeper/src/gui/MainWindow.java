@@ -43,6 +43,10 @@ import javafx.util.Duration;
 
 public class MainWindow extends Application{
 
+	/* I'M WRITING THIS HERE AS A REMINDER IF I EVER NEED TO GET JAVAFX RUNNING IN ECLIPSE IN THE FUTURE.
+	 * PROJECT > PROPERTIES > JAVA BUILD PATH > ADD EXTERNAL JARS
+	 * IN C:\Program Files\Java\jdk1.7.0_45\jre\lib YOU'LL FIND jfxrt.jar. ADD THAT!!!
+	 */
 
 	
 	private boolean paused = false;
@@ -72,7 +76,7 @@ public class MainWindow extends Application{
 	{
 		// Initialize Window
 		final Group root = new Group();
-		final Scene scene = new Scene(root, 600, 400);
+		final Scene scene = new Scene(root, 200, 100);
 		
 		primaryStage.setScene(scene);
 		scene.getStylesheets().add(MainWindow.class.getResource("GKStyle.css").toExternalForm());
@@ -151,14 +155,7 @@ public class MainWindow extends Application{
 				
 				Timeline timeline = tBuilder.createTimeline(tapes.toArray(new Tape[0]), gameSettings,
 						Constants.DEFAULT_TOTAL_GAME_TIME,
-						Constants.DEFAULT_TRANSITION_TIME);
-				
-//				Timeline timeline = Timeline.createTimeline(
-//						tapes.toArray(new Tape[0]),
-//						gameSettings,
-//						Constants.DEFAULT_TOTAL_GAME_TIME,
-//						Constants.DEFAULT_TRANSITION_TIME);
-				
+						Constants.DEFAULT_TRANSITION_TIME);				
 
 				updateMessage("Timeline Created!");
 				
@@ -175,46 +172,23 @@ public class MainWindow extends Application{
 			{
 				final Timeline timeline = ((Task<Timeline>)event.getSource()).getValue();
 				
-				final VBox vBox = new VBox();
 				final TimelinePlayer player = new TimelinePlayer(timeline);
-				final Slider slider = new Slider();
-				
-				vBox.getChildren().add(player);
-				vBox.getChildren().add(slider);
-				root.getChildren().clear();
-				root.getChildren().add(vBox);
-				
-				scene.setOnKeyPressed(new EventHandler<KeyEvent>() {
-			        @Override
-			        public void handle(KeyEvent t) {
-			        	if(t.getCode().isWhitespaceKey())
-			        	{
-			        		controlPlayPause(player);
-			        		System.out.println("WHITESPACE");
-			        	}
-			        }
-			    });
-				
-				player.setOnMouseClicked(new EventHandler<MouseEvent>()
-				{
-					@Override
-					public void handle(MouseEvent t) {
-						if(t.isPrimaryButtonDown())
-						{
-							controlPlayPause(player);
-						}
-					}
-				});
+				final TimelinePlayerControls playerControls = new TimelinePlayerControls(player);
+				root.getChildren().add(playerControls);
 				
 				player.play();
 				player.setOnReady(new Runnable()
 				{
-					
 					@Override
 					public void run()
 					{
-						primaryStage.setWidth(player.getWidth());
-						primaryStage.setHeight(player.getHeight());
+						double width = player.getWidth();
+						double height = player.getHeight();
+						Scene scene = primaryStage.getScene();
+						double frameWidth = primaryStage.getWidth() - scene.getWidth();
+						double frameHeight = primaryStage.getHeight() - scene.getHeight();
+						primaryStage.setWidth(width + frameWidth);
+						primaryStage.setHeight(height + frameHeight);
 						
 						ChangeListener<Object> updateSizeListener = new ChangeListener<Object>()
 						{
@@ -222,66 +196,28 @@ public class MainWindow extends Application{
 							public void changed(ObservableValue<?> observable, Object oldValue,
 									Object newValue)
 							{
-								player.setWidth(primaryStage.getWidth());
-								player.setHeight(primaryStage.getHeight());
-								vBox.setMinWidth(primaryStage.getWidth());
-								vBox.setMaxWidth(primaryStage.getWidth());
+								playerControls.setWidth(primaryStage.getWidth());
+								playerControls.setHeight(primaryStage.getHeight());
 							}
 						};
 						primaryStage.widthProperty().addListener(updateSizeListener);
 						primaryStage.heightProperty().addListener(updateSizeListener);
-						
-						slider.setMin(timeline.getVideoStartTime());
-						slider.setValue(timeline.getVideoStartTime());
-						slider.setMax(timeline.getTotalGameTime());
-					}
-				});
-				
-				player.currentGameTimeProperty().addListener(new ChangeListener<Duration>()
-				{
-					@Override
-					public void changed(
-							ObservableValue<? extends Duration> observableValue,
-							Duration duration, Duration current)
-					{
-						slider.setValue(current.toSeconds());
-					}
-				});
-				
-				slider.setOnMouseClicked(new EventHandler<MouseEvent>()
-				{
-					@Override
-					public void handle(MouseEvent mouseEvent)
-					{
-						double val = slider.getValue();
-						boolean isPaused = player.isPaused();
-						
-						if(!isPaused) player.pause();
-						player.seek(Duration.seconds(val));
-						if(!isPaused) player.play();
 					}
 				});
 			}
 
 		});
 		
-		new Thread(timelineTask).start();
-		
-		
+		new Thread(timelineTask).start();	
 	}
 	
-	private void controlPlayPause(TimelinePlayer player)
-	{
-    	if(!paused)
-    	{
-    		player.pause();
-    		paused = true;
-    	}
-    	else {
-			player.play();
-			paused = false;
-		}
-	}
+	
+	
+	
+	
+	
+	
+	
 	
 	public void VideoPlayerTest(Stage primaryStage)
 	{

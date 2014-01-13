@@ -156,6 +156,7 @@ public class TimelinePlayer extends Region
 		this.width = width;
 		if(foregroundVideoPlayer != null) foregroundVideoPlayer.setWidth(width);
 		if(backgroundVideoPlayer != null) backgroundVideoPlayer.setWidth(width);
+		super.setWidth(width);
 		//updateSize();
 	}
 	
@@ -170,6 +171,7 @@ public class TimelinePlayer extends Region
 		this.height = height;
 		if(foregroundVideoPlayer != null) foregroundVideoPlayer.setHeight(height);
 		if(backgroundVideoPlayer != null) backgroundVideoPlayer.setHeight(height);
+		super.setHeight(height);
 		//updateSize();
 	}
 	
@@ -272,6 +274,12 @@ public class TimelinePlayer extends Region
 	{
 		return paused;
 	}
+
+	
+	public Timeline getTimeline()
+	{
+		return this.timeline;
+	}
 	
 	
 	
@@ -289,7 +297,6 @@ public class TimelinePlayer extends Region
 			currentGameTime.set(Duration.seconds(currentTime + newTime.toSeconds()));
 		}
 	}
-	
 	
 	private class VolumeTransition extends Transition
 	{
