@@ -16,8 +16,8 @@ import model.Landmark;
 import model.Settings;
 import model.Tape;
 import model.Timeline;
+import model.TimelineBuilder;
 import model.Settings.ClipBaseTypes;
-
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
