@@ -39,6 +39,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 
 public class MainWindow extends Application{
@@ -50,6 +51,8 @@ public class MainWindow extends Application{
 
 	
 	private boolean paused = false;
+	private ArrayList<Tape> tapes;
+	private TimelinePlayer timelinePlayer;
 	
 	public static void main(String[] args) {
 		launch(args);
@@ -58,6 +61,7 @@ public class MainWindow extends Application{
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		
+		CleanUpTempDir();
 		TimelinePlayerTest(primaryStage);
 		
 		//VideoPlayerTest(primaryStage);
@@ -90,6 +94,22 @@ public class MainWindow extends Application{
 		vBox.getChildren().addAll(messageLabel, progressLabel);
 		root.getChildren().add(vBox);
 		
+		primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>(){
+			@Override
+			public void handle(WindowEvent arg0) {
+				if(timelinePlayer != null)
+				{
+					timelinePlayer.stop();
+				}
+				if(tapes != null){
+					for(Tape tape : tapes){
+						tape.closeClips();
+					}
+				}
+				Platform.exit();
+			}
+		});
+		
 		// Built Timeline and run Timeline Player
 		Task<Timeline> timelineTask = new Task<Timeline>(){
 			@Override
@@ -99,7 +119,7 @@ public class MainWindow extends Application{
 						"C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Main Tape\\TestTape.gktape",
 						"C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Booster 1\\TestTape.gktape"};
 				
-				ArrayList<Tape> tapes = new ArrayList<>();
+				tapes = new ArrayList<>();
 				// Load Tapes - 50%
 				double progress = 0.0;
 				for (String tapePath : tapePaths)
@@ -172,18 +192,18 @@ public class MainWindow extends Application{
 			{
 				final Timeline timeline = ((Task<Timeline>)event.getSource()).getValue();
 				
-				final TimelinePlayer player = new TimelinePlayer(timeline);
-				final TimelinePlayerControls playerControls = new TimelinePlayerControls(player);
+				timelinePlayer = new TimelinePlayer(timeline);
+				final TimelinePlayerControls playerControls = new TimelinePlayerControls(timelinePlayer);
 				root.getChildren().add(playerControls);
 				
-				player.play();
-				player.setOnReady(new Runnable()
+				timelinePlayer.play();
+				timelinePlayer.setOnReady(new Runnable()
 				{
 					@Override
 					public void run()
 					{
-						double width = player.getWidth();
-						double height = player.getHeight();
+						double width = timelinePlayer.getWidth();
+						double height = timelinePlayer.getHeight();
 						Scene scene = primaryStage.getScene();
 						double frameWidth = primaryStage.getWidth() - scene.getWidth();
 						double frameHeight = primaryStage.getHeight() - scene.getHeight();
@@ -211,8 +231,18 @@ public class MainWindow extends Application{
 		new Thread(timelineTask).start();	
 	}
 	
-	
-	
+	/**
+	 * Must run this on application startup because JavaFX currently has a bug where the 
+	 * Media object holds on to it's source file until the application is terminated.
+	 * I've got deleteOnExit running but it doesn't work all of the time.
+	 */
+	private void CleanUpTempDir()
+	{
+		File dir = new File(Constants.getTempLocation());
+		for (File file : dir.listFiles()) {
+			file.delete();
+		}
+	}
 	
 	
 	

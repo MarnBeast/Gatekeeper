@@ -90,6 +90,14 @@ public class Timeline
 	{
 		return clipTimes.keySet();
 	}
+	
+	public void closeClips()
+	{
+		for(Clip clip : clipTimes.values())
+		{
+			clip.close();
+		}
+	}
 
 }
 

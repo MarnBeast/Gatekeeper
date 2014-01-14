@@ -2,8 +2,8 @@ package model;
 
 public class Constants {
 
-	public static final String TEMP_LOCATION_WIN = "C:\\Temp\\";
-	public static final String TEMP_LOCATION_MAC_LIN = "$TMPDIR/";
+	public static final String TEMP_LOCATION_WIN = "C:\\Temp\\Gatekeeper\\";
+	public static final String TEMP_LOCATION_MAC_LIN = "$TMPDIR/Gatekeeper/";
 	
 	public static final String TAPE_EXTENSION = ".gktape";
 	public static final String SUPPORTED_MEDIA_EXTENSIONS = "^.*\\.(aiff|AIFF|fxm|FXM|flv|FLV|mp3|MP3|mp4|MP4|wav|WAV)$";

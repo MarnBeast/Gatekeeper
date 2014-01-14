@@ -7,7 +7,9 @@ import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.Slider;
 import javafx.scene.layout.Region;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Duration;
 
@@ -40,14 +42,16 @@ public class TimelinePlayerControls extends Region{
 		ClickPauseEventHandler clickPauseHandler = new ClickPauseEventHandler();
 		this.setOnMouseClicked(clickPauseHandler);
 		
-		// Extend handlers to children
-		for (Node node : getChildren()) {
-			node.setOnKeyPressed(keyPauseHandler);
-			String nodeType = node.getClass().getName();
-			if(!nodeType.startsWith("javafx.scene.control")){	// don't assign this for regularly clickable things - eg. buttons, sliders, etc.
-				node.setOnMouseClicked(clickPauseHandler);
-			}
-		}
+		timelinePlayer.setMouseTransparent(true);
+		
+//		// Extend handlers to children
+//		for (Node node : getChildren()) {
+//			node.setOnKeyPressed(keyPauseHandler);
+//			String nodeType = node.getClass().getName();
+//			if(!nodeType.startsWith("javafx.scene.control")){	// don't assign this for regularly clickable things - eg. buttons, sliders, etc.
+//				node.setOnMouseClicked(clickPauseHandler);
+//			}
+//		}
 		
 		timelinePlayer.currentGameTimeProperty().addListener(new ChangeListener<Duration>(){
 			@Override
@@ -107,7 +111,7 @@ public class TimelinePlayerControls extends Region{
 	private class KeyPauseEventHandler implements EventHandler<KeyEvent> {
 		@Override
 		public void handle(KeyEvent t) {
-			if(t.getCode().isWhitespaceKey()){
+			if(t.getCode() == KeyCode.SPACE){
 				controlPlayPause(timelinePlayer);
 			}
 		}
@@ -116,7 +120,7 @@ public class TimelinePlayerControls extends Region{
 	private class ClickPauseEventHandler implements EventHandler<MouseEvent>{
 		@Override
 		public void handle(MouseEvent t) {
-			if(t.isPrimaryButtonDown())
+			if(t.getButton() == MouseButton.PRIMARY)
 			{
 				controlPlayPause(timelinePlayer);
 			}

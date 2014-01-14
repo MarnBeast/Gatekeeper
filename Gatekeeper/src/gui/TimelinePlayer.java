@@ -61,6 +61,7 @@ public class TimelinePlayer extends Region
 				foregroundVideoPlayer = new VideoPlayer(clip.getVideo());
 				foregroundVideoPlayer.currentTimeProperty().addListener(currentTimeChangeListener);
 				getChildren().add(foregroundVideoPlayer);
+				foregroundVideoPlayer.setMouseTransparent(true);
 			}
 			if(timesIterator.hasNext())
 			{
@@ -126,6 +127,7 @@ public class TimelinePlayer extends Region
 					foreVolumeTrans.play();
 					
 					getChildren().add(foregroundVideoPlayer);
+					foregroundVideoPlayer.setMouseTransparent(true);
 					foregroundVideoPlayer.play();
 		
 					currentTime = nextTime;
@@ -196,9 +198,21 @@ public class TimelinePlayer extends Region
 	
 	public void pause()
 	{
-		foregroundVideoPlayer.pause();
-		timer.cancel();
-		pausedTime = foregroundVideoPlayer.getCurrentTime().toSeconds();
+		if(foregroundVideoPlayer != null)
+		{
+			foregroundVideoPlayer.pause();
+			timer.cancel();
+			pausedTime = foregroundVideoPlayer.getCurrentTime().toSeconds();
+			paused = true;
+		}
+	}
+	
+	public void stop()
+	{
+		if(foregroundVideoPlayer != null) foregroundVideoPlayer.stop();
+		if(backgroundVideoPlayer != null) backgroundVideoPlayer.stop();
+		if(timer != null) timer.cancel();
+		pausedTime = 0.0;
 		paused = true;
 	}
 	
@@ -234,6 +248,7 @@ public class TimelinePlayer extends Region
 		setHeight(height);
 		
 		getChildren().add(foregroundVideoPlayer);
+		foregroundVideoPlayer.setMouseTransparent(true);
 		
 		pausedTime = seekTimeD - clipTime;
 		Duration newSeekTime = Duration.seconds(pausedTime);

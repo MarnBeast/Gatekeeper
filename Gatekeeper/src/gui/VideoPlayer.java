@@ -37,6 +37,7 @@ public class VideoPlayer extends Region
 		mplayer = new MediaPlayer(media);
 		mview = new MediaView(mplayer);
 		getChildren().add(mview);
+		mview.setMouseTransparent(true);	// so that clicks go to the VideoPlayer object
 		
 		//mview.visibleProperty().set(false);
 		ChangeListener<Object> updateSizeListener = new ChangeListener<Object>()
@@ -126,6 +127,11 @@ public class VideoPlayer extends Region
 	public void seek(Duration seekTime)
 	{
 		mplayer.seek(seekTime);
+	}
+	
+	public void stop()
+	{
+		mplayer.stop();
 	}
 
 	public void setOnReady(Runnable arg0)

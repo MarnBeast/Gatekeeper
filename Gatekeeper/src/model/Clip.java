@@ -600,21 +600,29 @@ public class Clip implements Serializable, Comparable<Clip>
 		// save the video to a temp location and reset the media object
 		if(serializedVideoFile != null && serializedVideoFile.length > 0)
 		{
-			String videoPath = Constants.getTempLocation() + "GKCLIPTEMP";
-			int tempID = 0;
-			while(new File(videoPath + tempID + ((origVideoExtension != null) ? "." + origVideoExtension : "")).exists())
+			File dir = new File(Constants.getTempLocation());
+			if(!dir.exists())
 			{
-				tempID++;
+				dir.mkdir();
 			}
-			videoPath = videoPath + tempID + ((origVideoExtension != null) ? "." + origVideoExtension : "");
-			
-			FileOutputStream fileOut = new FileOutputStream(videoPath);
-			fileOut.write(serializedVideoFile);
-			fileOut.close();
-			
-			serializedVideoFile = new byte[0];
-			setVideo(videoPath);
-			sourceIsTemporary = true;
+			if(dir.exists())
+			{
+				String videoPath = Constants.getTempLocation() + "GKCLIPTEMP";
+				int tempID = 0;
+				while(new File(videoPath + tempID + ((origVideoExtension != null) ? "." + origVideoExtension : "")).exists())
+				{
+					tempID++;
+				}
+				videoPath = videoPath + tempID + ((origVideoExtension != null) ? "." + origVideoExtension : "");
+				
+				FileOutputStream fileOut = new FileOutputStream(videoPath);
+				fileOut.write(serializedVideoFile);
+				fileOut.close();
+				
+				serializedVideoFile = new byte[0];
+				setVideo(videoPath);
+				sourceIsTemporary = true;
+			}
 		}		
 	}
 	
@@ -624,6 +632,7 @@ public class Clip implements Serializable, Comparable<Clip>
 		{
 			File tempFile = null;
 			String vidSource = videoClip.getSource();
+			videoClip = null;
 			try
 			{
 				tempFile = new File(new URI(vidSource).getPath());
@@ -634,7 +643,12 @@ public class Clip implements Serializable, Comparable<Clip>
 			
 			if(tempFile != null && tempFile.exists())
 			{
-				tempFile.delete();
+				boolean deleted = tempFile.delete();
+				if(!deleted)
+				{
+					//tempFile.deleteOnExit();
+				}
+				//System.out.println(tempFile.toString() + ((deleted) ? " \tdeleted" : "\tNOT DELETED"));
 			}
 		}
 		

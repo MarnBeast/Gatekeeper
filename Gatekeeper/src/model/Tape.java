@@ -1,7 +1,5 @@
 package model;
 
-import java.awt.List;
-import java.awt.print.Book;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -423,6 +421,25 @@ public class Tape implements Serializable, ClipListener
 		else
 		{
 			typeClipCount.put(typeString, typeCount - 1);
+		}
+	}
+	
+	public void closeClips()
+	{
+		for (Clip clip : introClips) {
+			clip.close();
+		}
+		
+		for (Clip clip : fillerClips) {
+			clip.close();
+		}
+		
+		for (Clip clip : endingClips) {
+			clip.close();
+		}
+		
+		for (Clip clip : miscClips) {
+			clip.close();
 		}
 	}
 	
