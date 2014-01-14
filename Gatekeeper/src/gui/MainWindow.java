@@ -218,6 +218,10 @@ public class MainWindow extends Application{
 	
 	
 	
+	/* HERE LIE OLD TESTS */
+	
+	
+	
 	
 	public void VideoPlayerTest(Stage primaryStage)
 	{
@@ -388,7 +392,7 @@ public class MainWindow extends Application{
 					ClipBaseTypes.END));
 		}
 		
-		Timeline timeline = Timeline.createTimeline(
+		Timeline timeline = new TimelineBuilder().createTimeline(
 				tapes.toArray(new Tape[0]),
 				gameSettings,
 				Constants.DEFAULT_TOTAL_GAME_TIME,
