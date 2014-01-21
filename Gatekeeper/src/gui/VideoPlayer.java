@@ -94,11 +94,12 @@ public class VideoPlayer extends Region
 	 * aspect ratio of the played media, or the original width of the media if height is
 	 * also -1.
 	 */
-	public void setWidth(double width)
+	public void setPlayerWidth(double width)
 	{
 		this.width = width;
 		this.mview.setFitWidth(width);
 		//updateSize();
+		//super.setWidth(width);
 	}
 	
 	/**
@@ -107,11 +108,12 @@ public class VideoPlayer extends Region
 	 * aspect ratio of the played media, or the original height of the media if width is
 	 * also -1.
 	 */
-	public void setHeight(double height)
+	public void setPlayerHeight(double height)
 	{
 		this.height = height;
 		this.mview.setFitHeight(height);
 		//updateSize();
+		//super.setHeight(height);
 	}
 	
 	public void play()
@@ -152,5 +154,10 @@ public class VideoPlayer extends Region
 	public DoubleProperty volumeProperty()
 	{
 		return mplayer.volumeProperty();
+	}
+	
+	public Media getMedia()
+	{
+		return media;
 	}
 }

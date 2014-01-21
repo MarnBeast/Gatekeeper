@@ -116,8 +116,8 @@ public class MainWindow extends Application{
 			protected Timeline call() throws Exception
 			{
 				String[] tapePaths = new String[]{
-						"C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Main Tape\\TestTape.gktape",
-						"C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Booster 1\\TestTape.gktape"};
+						"C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Main Tape\\TestTape.gktape"};
+						//"C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Booster 1\\TestTape.gktape"};
 				
 				tapes = new ArrayList<>();
 				// Load Tapes - 50%
@@ -192,38 +192,45 @@ public class MainWindow extends Application{
 			{
 				final Timeline timeline = ((Task<Timeline>)event.getSource()).getValue();
 				
-				timelinePlayer = new TimelinePlayer(timeline);
-				final TimelinePlayerControls playerControls = new TimelinePlayerControls(timelinePlayer);
-				root.getChildren().add(playerControls);
+				TapePlayerWindow playerWindow = new TapePlayerWindow(timeline);
+				playerWindow.show();
+				playerWindow.getTimelinePlayer().play();
 				
-				timelinePlayer.play();
-				timelinePlayer.setOnReady(new Runnable()
-				{
-					@Override
-					public void run()
-					{
-						double width = timelinePlayer.getWidth();
-						double height = timelinePlayer.getHeight();
-						Scene scene = primaryStage.getScene();
-						double frameWidth = primaryStage.getWidth() - scene.getWidth();
-						double frameHeight = primaryStage.getHeight() - scene.getHeight();
-						primaryStage.setWidth(width + frameWidth);
-						primaryStage.setHeight(height + frameHeight);
-						
-						ChangeListener<Object> updateSizeListener = new ChangeListener<Object>()
-						{
-							@Override
-							public void changed(ObservableValue<?> observable, Object oldValue,
-									Object newValue)
-							{
-								playerControls.setWidth(primaryStage.getWidth());
-								playerControls.setHeight(primaryStage.getHeight());
-							}
-						};
-						primaryStage.widthProperty().addListener(updateSizeListener);
-						primaryStage.heightProperty().addListener(updateSizeListener);
-					}
-				});
+//				timelinePlayer = new TimelinePlayer(timeline);
+//				final TimelinePlayerControls playerControls = new TimelinePlayerControls(timelinePlayer);
+//				root.getChildren().add(playerControls);
+//				
+//				timelinePlayer.play();
+//				timelinePlayer.setOnReady(new Runnable()
+//				{
+//					@Override
+//					public void run()
+//					{
+//						double width = timelinePlayer.getWidth();
+//						double height = timelinePlayer.getHeight();
+//						Scene scene = primaryStage.getScene();
+//						double frameWidth = primaryStage.getWidth() - scene.getWidth();
+//						double frameHeight = primaryStage.getHeight() - scene.getHeight();
+//						primaryStage.setWidth(width + frameWidth);
+//						primaryStage.setHeight(height + frameHeight);
+//						
+//						
+//						ChangeListener<Object> updateSizeListener = new ChangeListener<Object>()
+//						{
+//							@Override
+//							public void changed(ObservableValue<?> observable, Object oldValue,
+//									Object newValue)
+//							{
+//								playerControls.setWidth(primaryStage.getWidth());
+//								playerControls.setHeight(primaryStage.getHeight());
+//								
+//								//System.out.print();
+//							}
+//						};
+//						primaryStage.widthProperty().addListener(updateSizeListener);
+//						primaryStage.heightProperty().addListener(updateSizeListener);
+//					}
+//				});
 			}
 
 		});
@@ -261,13 +268,13 @@ public class MainWindow extends Application{
 		Media media = new Media(projectRootDirectory + "src/tests/Clip01.mp4");
 		
 		final VideoPlayer player = new VideoPlayer(media);
-		player.setWidth(200);
+		//player.setHeight(200);
 		final VideoPlayer player2 = new VideoPlayer(media);
-		player2.setWidth(200);
+		//player2.setHeight(200);
 		final VideoPlayer player3 = new VideoPlayer(media);
-		player3.setWidth(200);
+		//player3.setHeight(200);
 		final VideoPlayer player4 = new VideoPlayer(media);
-		player4.setWidth(200);
+		//player4.setHeight(200);
 		
 		HBox hbox = new HBox();
 		HBox hbox2 = new HBox();
@@ -288,13 +295,30 @@ public class MainWindow extends Application{
 		//System.out.println(MainWindow.class.getResource("GKStyle.css"));
 		primaryStage.show();
 
+		player.widthProperty().addListener(new ChangeListener<Number>(){
 
+			@Override
+			public void changed(ObservableValue<? extends Number> arg0,
+					Number arg1, Number arg2) {
+				System.out.println("Listener: " + player.getWidth());
+			}
+			
+		});
 		
 		Thread thread = new Thread(new Runnable()
 		{
 			@Override
 			public void run()
 			{
+				player.setPlayerWidth(-1);
+				player2.setPlayerWidth(-1);
+				player3.setPlayerWidth(-1);
+				player4.setPlayerWidth(-1);
+				player.setPlayerHeight(-1);
+				player2.setPlayerHeight(-1);
+				player3.setPlayerHeight(-1);
+				player4.setPlayerHeight(-1);
+				player.play();
 				try
 				{
 					Thread.sleep(2000);
@@ -303,12 +327,37 @@ public class MainWindow extends Application{
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				player.setWidth(500);
-				player2.setWidth(500);
-				player3.setWidth(500);
-				player4.setWidth(500);
+				System.out.println(player.getWidth());
+				player.setPlayerWidth(500);
+				//player.setHeight(500);
+				player2.setPlayerWidth(500);
+				player3.setPlayerWidth(500);
+				player4.setPlayerWidth(500);
 				
-				player.play();
+				player2.play();
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				System.out.println(player.getWidth());
+				
+				player.setPlayerWidth(200);
+				player2.setPlayerWidth(200);
+				player3.setPlayerWidth(200);
+				player4.setPlayerWidth(200);
+				
+				player3.play();
+				try
+				{
+					Thread.sleep(2000);
+				} catch (InterruptedException e)
+				{
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				System.out.println(player.getWidth());
 			}
 		});
 		

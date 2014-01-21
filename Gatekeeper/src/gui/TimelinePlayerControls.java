@@ -130,11 +130,15 @@ public class TimelinePlayerControls extends Region{
 	public void setWidth(double width)
 	{
 		timelinePlayer.setWidth(width);
+		super.setWidth(timelinePlayer.getWidth());
+		super.setHeight(timelinePlayer.getHeight());
 	}
 	
 	public void setHeight(double height)
 	{
 		timelinePlayer.setHeight(height);
+		super.setWidth(timelinePlayer.getWidth());
+		super.setHeight(timelinePlayer.getHeight());
 	}
 
 }

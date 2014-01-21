@@ -69,18 +69,18 @@ public class TimelinePlayer extends Region
 			}
 		}
 		
-		ChangeListener<Object> updateSizeListener = new ChangeListener<Object>()
-				{
-					@Override
-					public void changed(ObservableValue<?> observable, Object oldValue,
-							Object newValue)
-					{
-						//updateSize();
-					}
-				};
-				
-		this.widthProperty().addListener(updateSizeListener);
-		this.heightProperty().addListener(updateSizeListener);
+//		ChangeListener<Object> updateSizeListener = new ChangeListener<Object>()
+//				{
+//					@Override
+//					public void changed(ObservableValue<?> observable, Object oldValue,
+//							Object newValue)
+//					{
+//						//updateSize();
+//					}
+//				};
+//				
+//		this.widthProperty().addListener(updateSizeListener);
+//		this.heightProperty().addListener(updateSizeListener);
 	}
 	
 	private class LoadNextClipTask extends TimerTask
@@ -155,10 +155,12 @@ public class TimelinePlayer extends Region
 	 */
 	public void setWidth(double width)
 	{
-		this.width = width;
-		if(foregroundVideoPlayer != null) foregroundVideoPlayer.setWidth(width);
-		if(backgroundVideoPlayer != null) backgroundVideoPlayer.setWidth(width);
-		super.setWidth(width);
+		if(foregroundVideoPlayer != null) foregroundVideoPlayer.setPlayerWidth(width);
+		if(backgroundVideoPlayer != null) backgroundVideoPlayer.setPlayerWidth(width);
+		this.width = foregroundVideoPlayer.getWidth();
+		this.height = foregroundVideoPlayer.getHeight();
+		super.setWidth(this.width);
+		super.setHeight(this.height);
 		//updateSize();
 	}
 	
@@ -170,10 +172,12 @@ public class TimelinePlayer extends Region
 	 */
 	public void setHeight(double height)
 	{
-		this.height = height;
-		if(foregroundVideoPlayer != null) foregroundVideoPlayer.setHeight(height);
-		if(backgroundVideoPlayer != null) backgroundVideoPlayer.setHeight(height);
-		super.setHeight(height);
+		if(foregroundVideoPlayer != null) foregroundVideoPlayer.setPlayerHeight(height);
+		if(backgroundVideoPlayer != null) backgroundVideoPlayer.setPlayerHeight(height);
+		this.width = foregroundVideoPlayer.getWidth();
+		this.height = foregroundVideoPlayer.getHeight();
+		super.setWidth(this.width);
+		super.setHeight(this.height);
 		//updateSize();
 	}
 	
@@ -288,6 +292,13 @@ public class TimelinePlayer extends Region
 	public boolean isPaused()
 	{
 		return paused;
+	}
+	
+
+	
+	public VideoPlayer getCurrentVideoPlayer()
+	{
+		return foregroundVideoPlayer;
 	}
 
 	
