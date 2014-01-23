@@ -116,9 +116,9 @@ public class MainWindow extends Application{
 			protected Timeline call() throws Exception
 			{
 				String[] tapePaths = new String[]{
-						"C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Main Tape\\TestTape.gktape"};
-						//"C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Booster 1\\TestTape.gktape"};
-				
+						"C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Main Tape\\TestTape.gktape",//};
+						"C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Booster 1\\TestTape.gktape"};
+								
 				tapes = new ArrayList<>();
 				// Load Tapes - 50%
 				double progress = 0.0;
@@ -130,6 +130,8 @@ public class MainWindow extends Application{
 						updateProgress(progress, 100.0);
 						progress += 50.0/(double)tapePaths.length;
 						Tape tape = Tape.loadTape(tapePath);
+						tape.loadClipsMedia();
+						tape.saveTape(tapePath);
 						tapes.add(tape);
 					} catch (ClassNotFoundException e)
 					{
@@ -148,7 +150,7 @@ public class MainWindow extends Application{
 				gameSettings.addBias("Soul Rangers", 0.0);	// bias it out so that it's only added from the landmark
 				for (Tape tape : tapes)
 				{
-					tape.loadClipsMedia();
+					//tape.loadClipsMedia();
 					
 					gameSettings.addTapeIncludes(tape, EnumSet.of(
 							ClipBaseTypes.INTRO,
@@ -174,7 +176,7 @@ public class MainWindow extends Application{
 				tBuilder.addTBProgressObserver(pObserver);
 				
 				Timeline timeline = tBuilder.createTimeline(tapes.toArray(new Tape[0]), gameSettings,
-						Constants.DEFAULT_TOTAL_GAME_TIME,
+						1200,
 						Constants.DEFAULT_TRANSITION_TIME);				
 
 				updateMessage("Timeline Created!");
@@ -192,6 +194,11 @@ public class MainWindow extends Application{
 			{
 				final Timeline timeline = ((Task<Timeline>)event.getSource()).getValue();
 				
+				for(double clipTime : timeline.getClipTimes())
+				{
+					Clip clip = timeline.getClip(clipTime);
+					System.out.println(clip.getLength() + "\t" + clip.getVideo().getSource());
+				}
 				TapePlayerWindow playerWindow = new TapePlayerWindow(timeline);
 				playerWindow.show();
 				playerWindow.getTimelinePlayer().play();

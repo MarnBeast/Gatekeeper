@@ -366,11 +366,15 @@ public class Tape implements Serializable, ClipListener
 		return tape;
 	}
 	
+	/**
+	 * This loads all of the media objects of all of the clips.
+	 */
 	public void loadClipsMedia()
 	{
 		for (Clip clip : introClips)
 		{
 			clip.loadMediaMetaData();
+			clip.getLength();
 		}
 		for (Clip clip : miscClips)
 		{

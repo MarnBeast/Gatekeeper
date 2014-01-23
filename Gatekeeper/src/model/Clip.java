@@ -39,6 +39,7 @@ public class Clip implements Serializable, Comparable<Clip>
 	private double placePercent = 0.0;
 	private double startTime = 0.0;
 	private double totalTime = 0.0;
+	private double length = 0.0;
 	
 	private transient Media videoClip = null;
 	private byte[] serializedVideoFile = null;	// this is used to store the video file when serializing the clip.
@@ -187,6 +188,10 @@ public class Clip implements Serializable, Comparable<Clip>
 		{
 			destroySource();
 		}
+		if(videoClip != null)
+		{
+			length = 0.0;
+		}
 		this.videoClip = videoClip;
 	}
 	
@@ -244,6 +249,10 @@ public class Clip implements Serializable, Comparable<Clip>
 			player.setOnReady(null);
 		}
 		
+		if(mediaLoaded)
+		{
+			length = videoClip.getDuration().toSeconds();
+		}
 		return mediaLoaded;
 	}
 	
@@ -426,9 +435,10 @@ public class Clip implements Serializable, Comparable<Clip>
 	public double getLength(){
 		if(!mediaLoaded)
 		{
-			throw new IllegalStateException("The clip has not been loaded with the media. Please load the clip and try again. See method 'loadMediaMetaData' for details.");
+			return length;//throw new IllegalStateException("The clip has not been loaded with the media. Please load the clip and try again. See method 'loadMediaMetaData' for details.");
 		}
-		return videoClip.getDuration().toSeconds();
+		length = videoClip.getDuration().toSeconds();
+		return length;//videoClip.getDuration().toSeconds();
 	}
 
 	/**
