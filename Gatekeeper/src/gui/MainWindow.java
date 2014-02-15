@@ -64,10 +64,10 @@ public class MainWindow extends Application{
 		CleanUpTempDir();
 		TimelinePlayerTest(primaryStage);
 		
-		//VideoPlayerTest(primaryStage);
+		VideoPlayerTest(primaryStage);
 		
-		//SerializeTestTape("C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Main Tape\\");
-		//SerializeTestTape("C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Booster 1\\");
+		SerializeTestTape("C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Main Tape\\");
+		SerializeTestTape("C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Booster 1\\");
 		
 		//TimelineTest(new String[]{
 		//		"C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Main Tape\\TestTape.gktape",
@@ -253,8 +253,10 @@ public class MainWindow extends Application{
 	private void CleanUpTempDir()
 	{
 		File dir = new File(Constants.getTempLocation());
-		for (File file : dir.listFiles()) {
-			file.delete();
+		if(dir.exists()){
+			for (File file : dir.listFiles()) {
+				file.delete();
+			}
 		}
 	}
 	
