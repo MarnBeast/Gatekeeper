@@ -3,16 +3,11 @@ package gui;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.Observable;
-import java.util.Observer;
-import java.util.Map.Entry;
 
 import model.Clip;
 import model.Constants;
-import model.Landmark;
 import model.Settings;
 import model.Tape;
 import model.Timeline;
@@ -24,23 +19,16 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
-import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
-import javafx.scene.control.Slider;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
-import javafx.util.Duration;
 
 public class MainWindow extends Application{
 
@@ -62,12 +50,12 @@ public class MainWindow extends Application{
 	public void start(Stage primaryStage) throws Exception {
 		
 		CleanUpTempDir();
-		TimelinePlayerTest(primaryStage);
+		//TimelinePlayerTest(primaryStage);
 		
-		VideoPlayerTest(primaryStage);
+		//VideoPlayerTest(primaryStage);
 		
 		SerializeTestTape("C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Main Tape\\");
-		SerializeTestTape("C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Booster 1\\");
+//		SerializeTestTape("C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Booster 1\\");
 		
 		//TimelineTest(new String[]{
 		//		"C:\\Users\\MarnBeast\\Videos\\atmosfear clips\\Main Tape\\TestTape.gktape",
@@ -374,75 +362,91 @@ public class MainWindow extends Application{
 	}
 	
 	
-	public void SerializeTestTape(String basePath)
+	public void SerializeTestTape(String sbasePath)
 	{
-		File folder = new File(basePath);
-		FileFilter filter = new FileFilter()
+		final String basePath = sbasePath;
+		Thread thread = new Thread(new Runnable()
 		{
 			@Override
-			public boolean accept(File pathname)
+			public void run()
 			{
-				return pathname.getPath().matches(Constants.SUPPORTED_MEDIA_EXTENSIONS);
-			}
-		};
-		File[] listOfFiles = folder.listFiles(filter);
-		String[] filePaths = new String[listOfFiles.length];
-		
-		for (int i = 0; i < listOfFiles.length; i++)
-		{
-			filePaths[i]=listOfFiles[i].getPath(); 
-		}
-		Tape tape = new Tape();
-		tape.addClips(filePaths, ClipBaseTypes.MISC, true);
-		
-		Clip[] clips = tape.getClips(ClipBaseTypes.MISC);
-		
-		Clip clip = clips[0];										// Intro
-		tape.removeClip(clip, ClipBaseTypes.MISC);
-		tape.addClip(clip, ClipBaseTypes.INTRO);
-		clip.addType(Constants.DEFAULT_TYPES[1]);
-		
-		clip = clips[clips.length-1];								// Ending
-		tape.removeClip(clip, ClipBaseTypes.MISC);
-		tape.addClip(clip, ClipBaseTypes.END);
-		clip.addType(Constants.DEFAULT_TYPES[2]);
-		
-		for(int i = 1; i < clips.length-1; i++)
-		{
-			if(i%2 > 0)
-			{
-				clip = clips[i];									// Filler
+				try {
+					Thread.sleep(5000);
+				} catch (InterruptedException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				File folder = new File(basePath);
+				FileFilter filter = new FileFilter()
+				{
+					@Override
+					public boolean accept(File pathname)
+					{
+						return pathname.getPath().matches(Constants.SUPPORTED_MEDIA_EXTENSIONS);
+					}
+				};
+				File[] listOfFiles = folder.listFiles(filter);
+				String[] filePaths = new String[listOfFiles.length];
+				
+				for (int i = 0; i < listOfFiles.length; i++)
+				{
+					filePaths[i]=listOfFiles[i].getPath(); 
+				}
+				Tape tape = new Tape();
+				tape.addClips(filePaths, ClipBaseTypes.MISC, true);
+				
+				Clip[] clips = tape.getClips(ClipBaseTypes.MISC);
+				
+				Clip clip = clips[0];										// Intro
 				tape.removeClip(clip, ClipBaseTypes.MISC);
-				tape.addClip(clip, ClipBaseTypes.FILLER);
-				clip.addType(Constants.DEFAULT_TYPES[3]);
+				tape.addClip(clip, ClipBaseTypes.INTRO);
+				clip.addType(Constants.DEFAULT_TYPES[1]);
+				
+				clip = clips[clips.length-1];								// Ending
+				tape.removeClip(clip, ClipBaseTypes.MISC);
+				tape.addClip(clip, ClipBaseTypes.END);
+				clip.addType(Constants.DEFAULT_TYPES[2]);
+				
+				for(int i = 1; i < clips.length-1; i++)
+				{
+					if(i%2 > 0)
+					{
+						clip = clips[i];									// Filler
+						tape.removeClip(clip, ClipBaseTypes.MISC);
+						tape.addClip(clip, ClipBaseTypes.FILLER);
+						clip.addType(Constants.DEFAULT_TYPES[3]);
+					}
+				}
+				
+				clips[16].addType("Soul Rangers");
+				clips[22].addType("Soul Rangers Release");
+				clips[10].addType("Black Hole Release");
+				clips[56].addType("Black Hole Release");
+				clips[81].addType("Black Hole Release");
+				
+		//		clips[18].addType("Soul Rangers");
+		//		clips[20].addType("Soul Rangers Release");
+		//		clips[16].addType("Black Hole Release");
+		//		clips[36].addType("Black Hole Release");
+				
+				Settings settings = new Settings();
+				settings.addLandmark("Soul Rangers", 600);
+				settings.addLandmark("Soul Rangers Release", 800);
+				
+				try
+				{
+					tape.saveTape(basePath + "TestTape" + Constants.TAPE_EXTENSION);
+					System.out.println("DONE SAVING");
+				} catch (IOException e)
+				{
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					System.out.println("ERROR: " + e.getMessage());
+				}
 			}
-		}
+		});
 		
-		clips[16].addType("Soul Rangers");
-		clips[22].addType("Soul Rangers Release");
-		clips[10].addType("Black Hole Release");
-		clips[56].addType("Black Hole Release");
-		clips[81].addType("Black Hole Release");
-		
-//		clips[18].addType("Soul Rangers");
-//		clips[20].addType("Soul Rangers Release");
-//		clips[16].addType("Black Hole Release");
-//		clips[36].addType("Black Hole Release");
-		
-		Settings settings = new Settings();
-		settings.addLandmark("Soul Rangers", 600);
-		settings.addLandmark("Soul Rangers Release", 800);
-		
-		try
-		{
-			tape.saveTape(basePath + "TestTape" + Constants.TAPE_EXTENSION);
-			System.out.println("DONE SAVING");
-		} catch (IOException e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			System.out.println("ERROR: " + e.getMessage());
-		}
+		thread.start();
 	}
 	
 	public Timeline TimelineTest(String[] tapePaths)

@@ -223,30 +223,37 @@ public class Clip implements Serializable, Comparable<Clip>
 	{		
 		if(!mediaLoaded && this.videoClip != null)
 		{
-			MediaPlayer player = new MediaPlayer(this.videoClip);
-			player.setOnReady(new Runnable()
+			try
 			{
-				@Override
-				public void run()
+				MediaPlayer player = new MediaPlayer(this.videoClip);
+				player.setOnReady(new Runnable()
 				{
-					mediaLoaded = true;
+					@Override
+					public void run()
+					{
+						mediaLoaded = true;
+					}
+				});
+				
+				int waitTime = 0;
+				while(!mediaLoaded && waitTime < timeout)
+				{
+					try
+					{
+						Thread.sleep(10);
+						waitTime += 10;
+					} catch (InterruptedException e)
+					{
+						// Just keep checking and waiting
+					}
 				}
-			});
-			
-			int waitTime = 0;
-			while(!mediaLoaded && waitTime < timeout)
-			{
-				try
-				{
-					Thread.sleep(10);
-					waitTime += 10;
-				} catch (InterruptedException e)
-				{
-					// Just keep checking and waiting
-				}
+				
+				player.setOnReady(null);
 			}
-			
-			player.setOnReady(null);
+			catch(Exception e)
+			{
+				System.out.println(this.videoClip.getSource() + "\r\n" + e.getMessage());
+			}
 		}
 		
 		if(mediaLoaded)
