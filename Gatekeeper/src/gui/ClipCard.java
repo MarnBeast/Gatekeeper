@@ -9,12 +9,12 @@ public class ClipCard extends Control
 	public ClipCard(Clip clip)
 	{
 		getStyleClass().add("clip-card");
-		
+
 	}
-	
+
 	@Override
-	protected String getUserAgentStylesheet() {
+	public String getUserAgentStylesheet() {
 		return ClipCard.class.getResource("clipcard.css").toExternalForm();
 	}
-	
+
 }
